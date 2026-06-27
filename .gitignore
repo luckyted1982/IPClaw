@@ -1,5 +1,5 @@
 node_modules
-dist
+# dist  # 已移除，允许 GitHub Pages 使用构建产物
 .DS_Store
 
 # Logs
