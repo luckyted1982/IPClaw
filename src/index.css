@@ -1,0 +1,241 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 48 96% 53%;
+    --primary-foreground: 222 47% 8%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 19% 27%;
+    --input: 217 19% 27%;
+    --ring: 48 96% 53%;
+    --radius: 0.625rem;
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 48 96% 53%;
+    --sidebar-primary-foreground: 222 47% 8%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 19% 27%;
+    --sidebar-ring: 48 96% 53%;
+
+    --navy-950: #0B1120;
+    --navy-900: #0F172A;
+    --navy-800: #1E293B;
+    --navy-700: #334155;
+    --navy-600: #475569;
+    --gold-400: #FACC15;
+    --gold-300: #FDE047;
+    --gold-500: #EAB308;
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-muted: #64748B;
+    --text-gold: #FACC15;
+    --success: #22C55E;
+    --error: #EF4444;
+    --warning: #F59E0B;
+    --info: #3B82F6;
+
+    --gradient-hero: linear-gradient(135deg, #0B1120 0%, #0F172A 50%, #1E293B 100%);
+    --gradient-gold-glow: radial-gradient(ellipse at center, rgba(250,204,21,0.15) 0%, transparent 70%);
+    --gradient-navy-card: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+    --gradient-sidebar: linear-gradient(180deg, #0F172A 0%, #0B1120 100%);
+    --gradient-ai-output: linear-gradient(90deg, #FACC15 0%, #FDE047 100%);
+
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+    --space-20: 80px;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --radius-full: 9999px;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    background-color: var(--navy-900);
+    color: var(--text-primary);
+    font-family: "Noto Sans SC", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(51, 65, 85, 0.5);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-card-strong {
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  .gradient-navy-card {
+    background: var(--gradient-navy-card);
+    border: 1px solid var(--navy-700);
+    border-radius: var(--radius-lg);
+  }
+
+  .text-gradient-gold {
+    background: var(--gradient-ai-output);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-shimmer-gold {
+    background: linear-gradient(90deg, #FACC15 0%, #FDE047 25%, #FACC15 50%, #EAB308 75%, #FACC15 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s linear infinite;
+  }
+
+  .bg-gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .bg-gradient-sidebar {
+    background: var(--gradient-sidebar);
+  }
+
+  .bg-gold-glow {
+    background: var(--gradient-gold-glow);
+  }
+
+  .gold-border-hover {
+    transition: border-color 200ms var(--ease-smooth), box-shadow 200ms var(--ease-smooth), transform 200ms var(--ease-smooth);
+  }
+
+  .gold-border-hover:hover {
+    border-color: var(--gold-400);
+    box-shadow: 0 8px 32px rgba(250, 204, 21, 0.15);
+    transform: translateY(-4px);
+  }
+
+  .tier-badge-ask {
+    @apply px-3 py-1 rounded-full text-xs font-semibold;
+    background: var(--info);
+    color: white;
+  }
+
+  .tier-badge-plan {
+    @apply px-3 py-1 rounded-full text-xs font-semibold;
+    background: #8B5CF6;
+    color: white;
+  }
+
+  .tier-badge-craft {
+    @apply px-3 py-1 rounded-full text-xs font-semibold;
+    background: var(--gold-400);
+    color: var(--navy-900);
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-size: 3rem;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .font-h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+
+  .font-h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  .font-h3 {
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: -0.005em;
+  }
+
+  .font-h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .font-body {
+    font-size: 0.9375rem;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  .font-small {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.005em;
+  }
+
+  .font-tiny {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
+  }
+
+  .font-mono {
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+}

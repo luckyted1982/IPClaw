@@ -1,0 +1,443 @@
+[5] [19]中华人民共和国国家知识产权局
+[7] [12] 发明专利申请公布说明书
+[8] [21]申请号 200610142737.2
+[12] [51]Int.Cl.
+[13] A61K47/48(2006.01) A61K 38/19  (2006.01) A61P 7/00  (2006.01) A61P31/18  (2006.01)
+[14] A61P31/04  (2006.01)
+[15] A61P37/00 (2006.01)
+[18] [43]公开日 2008年5月7日                                      [11]公开号 CN 101172161A
+[20] [54]发明名称
+[21] 水溶性聚合物修饰的 G-CSF   偶联物
+[22] [57]摘要
+[23] 本发明涉及一类全新结构、通式为(I) 的经水溶 性聚合物修饰的 G-CSF    偶联物或其药学上可接受 的盐，和其制备方法，及含通式( I) 化合物或其药学 上可接受的盐的药物组合物。水溶性聚合物-连接 基团-N 端 -G'(I)。
+[25] 1、  一种通式 ( I)   表示的偶联物或其药学上可接受的盐：
+[26] 水溶性聚合物-连接基团-N 端-G’
+[27] (I)
+[28] 其中，
+[29] 水溶性聚合物选自聚乙二醇、聚丙二醇、聚乳酸或聚合氨基酸；
+[30] 连接基团由水溶性聚合物末端的功能团与引入蛋白质 G’的N 末 端的功能团发生专一反应而形成；
+[31] G’选自天然G-CSF 、基因重组 G-CSF 或者具有 G-CSF 功能的基 因突变产物。
+[33] 2、  根据权利要求1所述的偶联物或其药学上可接受的盐，其特征在 于所述水溶性聚合物为聚乙二醇，包括直线型和分枝型，分子量 为2KD-100KD,   优选为5KD-40KD。
+[35] 3、  根据权利要求1所述的偶联物或其药学上可接受的盐，其特征在 于所述的通式( I)   偶联物的化学结构式为通式( II)   所示：
+[37] (II)
+[38] 其中，
+[39] R 选自C1₋4直链或支链烷基，优选甲基或乙基，更优选甲基；
+[40] R₁ 、R₂ 彼此独立地选自氢或 C₁-4直链或支链烷基，优选氢、甲基 或乙基；
+[44] X选 自O 、S 、NH 、      H2N2或
+[47] ]m O
+[49] 1选自1-20的整数，优选1-10的整数，更优选1-5的整数；
+[51] m 选自50-2500的整数，优选100-1000的整数；
+[52] n 选自1-20的整数，优选1-10的整数，更优选1-5的整数；
+[53] G’选自天然G-CSF、基因重组 G-CSF 或者具有G-CSF 功能的基因 突变产物。
+[55] 4、  根据权利要求1所述的偶联物或其药学上可接受的盐，其特征在 于G’选自SEQ ID NO:1-10 所示的G-CSF 衍生物。
+[57] 5、  根据权利要求1或3所述的偶联物或其药学上可接受的盐，其特 征在于所述的G’ 为天然存在的人源G-CSF 的序列。
+[59] 6、  根据权利要求1或3所述的偶联物或其药学上可接受的盐，其特 征在于所述的G’为序列编号SEQID   NO:001表示的Met-G-CSF。
+[61] 7、  根据权利要求1或3所述的偶联物或其药学上可接受的盐，其特 征在于所述的偶联物包括：
+[63] m 为选自400-500的整数；和
+[65] m 为选自400-500的整数。
+[67] 8、  根据权利要求1或3所述的偶联物或其药学上可接受的盐，其特 征在于所述的偶联物和酸成盐，所用的酸选自有机酸或无机酸。
+[69] 9、  根据权利要求8所述的偶联物或其药学上可接受的盐，其特征在 于所述的有机酸选自乙酸、三氟乙酸、丙酸、丁酸、马来酸或者 对甲苯磺酸或其混合物，优选为乙酸或三氟乙酸；所述无机酸选 自盐酸、硫酸、磷酸或者甲磺酸或其混合物，优选为盐酸。
+[71] 10、 一种制备权利要求1或3中所述偶联物的方法，包括：
+[72] 1)将通式化合物 (II)    与 G’的 N 端氨基还原胺化反应得通式化合物 (IV):
+[74] (III)                                                                      (IV)
+[75] 2)将通式化合物( IV)  脱去巯基保护基得通式化合物( V):
+[77] (IV)
+[78] (V)
+[79] 3)将通式化合物( V)  与 mPEG-MAL 发生迈克尔加成得化合物(Ⅱ):
+[81] (V)
+[86] (II)
+[87] 其中，
+[88] R、R₁ 、R₂、G’ 、X 、1 、m、n 如权利要求3所定义；
+[89] Z 为巯基保护基团，选自：甲酰基、乙酰基、丙酰基、三苯甲基或叔丁 基，优选为乙酰基。
+[91] 11、 根据权利要求1或3中所述的偶联物或其药学上可接受的盐在制 备治疗由于放射性治疗或化疗所致白血球减少症、爱滋病及其他
+[93] 免疫缺陷病、细菌感染疾病的药物中的应用。
+[95] 12 、 一种药物组合物，其含有药物有效剂量的如权利要求1或3中所 述的偶联物或其药学上可接受的盐，和药学上可接受的载体。
+[97] 13 、 根据权利要求12所述的药物组合物在制备治疗由于放射性治疗 或化疗所致白血球减少症、爱滋病及其他免疫缺陷病、细菌感染 疾病的药物中的应用。
+[99] 水溶性聚合物修饰的G-CSF 偶联物
+[102] 技术领域
+[103] 本发明涉及一类全新结构、通式为 ( I)   的经水溶性聚合物修饰的G-CSF 偶联物或其药学上可接受的盐，和其制备方法，和含通式( I)  化合物或其药 学上可接受的盐的药物组合物。
+[104] 水溶性聚合物-连接基团-N 端-G'
+[105] (I)
+[108] 背景技术
+[109] 粒细胞集落刺激因子( G-CSF)  是由单核细胞及成纤维细胞产生，可刺激 粒细胞集落形成，对中性粒细胞有刺激作用。G-CSF 与靶细胞膜受体结合，主 要刺激粒细胞系造血，亦可使多功能造血干细胞进入细胞周期，促进髓系造血 组细胞的增殖、分化和成熟，并驱使中性粒细胞释放至血流，使外周中性粒细 胞数量增加，并提高其功能，如吞噬功能，针对肿瘤细胞的抗体依赖细胞细胞 毒活性等[Metcalf,Blood       67:257(1986);Yan        et.al,Blood        84(3):795-799
+[110] (1994);Bensinger,et.al,Blood                              81(11):3158-3163(1993);Neben,   et.al,Blood          81(7):  1960-1967(1993)],  因此重组的粒细胞集落刺激因子 常用于接受放射治疗或化疗的癌症病人以及骨髓移植后白血病患者的辅助治 疗。
+[111] 市场常使用的人源 G-CSF 为Neupogen 和 Neutrogin,  以及人源 G-CSF的  衍生物Neu-wp,G-CSF 的衍生物或变体蛋白也有大量文献报道[如US5581476、 US5214132、US5362853 、US4904584],   这些变体蛋白含多个氨基酸的取代， 以求寻找更稳定、活性更高、更适用于临床的G-CSF。
+[112] 市售的重组人源 G-CSF 由于其在人体内生物利用度差、半衰期短以及容 易被体内蛋白酶破坏，因此需要频繁注射给药，难取得良好的临床治疗效果。
+[114] 研究表明，具有治疗应用作用的蛋白质经聚乙二醇修饰形成聚乙二醇-蛋白质 偶联物后，其成为药物的可能性大大提高。这一类聚乙二醇修饰的蛋白质已经  在临床上得到了充分的应用[如 Katre,Advanced   Drug   Delivery   Systems,10:     91(1993);Inada,et.al,J.Bioact        and        Compatible        Polymers,5:343(1990)]。 经过聚乙二醇修饰得到的蛋白偶联物具有更好的物理、化学稳定性，同时还具  有更好的蛋白酶介稳定性；另外由于偶联物分子量的增加，其在体内的半衰期  得到了延长，在体内形成抗体的可能性亦有所下降，再加上其分布体积减少， 这样可使毒性减少。由聚乙二醇修饰的G-CSF 或 G-CSF 变体蛋白已公开在许  多文献中，如EP0335423,EP0401384,US5824778,US5985265,WO0044785,
+[115] WO2001051510,US5824784   等 。 具体而言，在专利 US5985265 公开的聚乙 二醇修饰的 G-CSF 偶联物中，以修饰在G-CSF 的N 末端所得偶联物的体外、 体内生物活性最好，但用酰化反应进行聚乙二醇修饰氨基选择性差，故通常得  到的是一组聚乙二醇修饰在各个位置的混合物，需要进行分离提纯才能得到各  个单体，收率低，难于工业化生产；在专利 US5824784 中用大分子的聚乙二  醇醛直接来修饰G-CSF,  通过严格控制反应的PH,  有选择性的修饰G-CSF 的  N 末端，可以得到相对专一的N 末端聚乙二醇修饰的偶联物，但是不可否认， 这种反应的选择性是通过边链氨基和 N 末端氨基的 Pka 不同而实现的，这在 制备生产和质量控制上是有相当难度的；另外，由于大分子醛各批之间醛的含  量不一，难以控制大分子醛与蛋白的投料比例，必然影响反应收率和生产成本， 同时由于大分子醛与不同氨基偶联产生的偶联物生物活性有差别也会影响到  最终产品质量的均一性和活性。
+[118] 发明内容
+[119] 针对现有技术的不足，本发明的目的在于提供一类全新结构、通式为( I)  的、经水溶性聚合物修饰的 G-CSF 偶联物或其药学上可接受的盐；本发明的 另一目的在于提供制备通式为 ( I)  的偶联物或其药学上可接受的盐的方法； 本发明的又一目的在于提供含该类偶联物或其药学上可接受的盐的药物组合 物及其用途。
+[120] 本发明涉及通式为 ( I)  的偶联物或其药学上可接受的盐。
+[122] 水溶性聚合物-连接基团-N 端-G’
+[123] (I)
+[124] 其中，水溶性聚合物包括聚乙二醇、聚丙二醇、聚乳酸、聚合氨基酸等，优选 聚乙二醇，聚乙二醇的分子量选自2KD-100KD,  优选5KD-40KD;  聚乙二醇 可以是直线型或分支型的；
+[125] 连接基团由水溶性聚合物末端的功能团与引入蛋白质G'的N 末端的功能 团发生专一反应而形成；
+[126] G'选自天然G-CSF、基因重组 G-CSF 或者具有G-CSF 功能的基因突变 产物，优选编号为 SEQID    NO:1-10的 G-CSF 衍生物，更优选为天然存在的 人源G-CSF 的序列或SEQID    NO:1表示的Met-G-CSF。
+[127] 具体地，上述通式为( I)  的偶联物或其药学上可接受的盐的化学结构式 由通式(Ⅱ)表示：
+[129] (II)
+[130] 其中，
+[131] R 选自C₁-4的直链或支链烷基，优选甲基或乙基，更优选甲基；
+[132] R₁ 、R₂彼此独立地选自氢或 C1-4直链或支链烷基，优选氢、甲基或乙基；
+[135] X选自0、 S 、NH、
+[136] 1选自1-20的整数，优选1-10的整数，更优选1-5的整数； m选自50-2500的整数，优选100-1000的整数；
+[137] n 选自1-20的整数，优选1-10的整数，更优选1-5的整数。
+[138] G’选自天然G-CSF、基因重组G-CSF 或者具有G-CSF 功能的基因突变产物。
+[140] 进一步，本发明涉及上述通式为 ( I) 、(Ⅱ)       的偶联物或其药学上可接受 的盐，其特点是G’ 具有天然存在的人源G-CSF 的序列。
+[141] 进一步，本发明涉及上述通式为 ( I) 、(Ⅱ)       的偶联物或其药学上可接受 的盐，其特点是G’ 为Met-G-CSF(SEQ  ID  NO:1)。
+[142] 上述通式为 ( I)、 (Ⅱ)   的偶联物包括：
+[149] m  为
+[150] 选自400-500的整数；
+[152] m 为选自400-500的整数。
+[153] 进一步，本发明通式为( I) 、(Ⅱ)       的偶联物可以和酸成盐，所用的酸选 自有机酸或无机酸，有机酸包括乙酸、三氟乙酸、丙酸、丁酸、马来酸或者对 甲苯磺酸或其混合物，优选为乙酸、三氟乙酸；无机酸包括盐酸、硫酸、磷酸 或者甲磺酸或其混合物，优选为盐酸。
+[154] 另一方面，本发明提供一种制备通式为( I) 、(Ⅱ)      的偶联物的方法，包 括以下步骤：
+[155] 1)将通式化合物(ⅢI) 与 G’的N 末端氨基还原胺化反应得通式化合物( IV):
+[158] (III)                                                            (IV)
+[159] 2)将通式化合物 ( IV)  脱去巯基保护基得通式化合物 ( V):
+[162] (IV)                                                           (V)
+[163] 3)将通式化合物 ( V)  与mPEG-MAL 发生迈克尔加成得偶联物 ( I):
+[166] (V)
+[170] (II)
+[171] 其中，
+[172] R、R₁ 、R₂ 、G’ 、X 、1、m 、n 如上所定义；
+[173] Z 为巯基保护基团，选自：甲酰基、乙酰基、丙酰基、三苯甲基或叔丁基，优 选乙酰基。
+[174] 进一步，本发明还涉及本发明的偶联物或其药学上可接受的盐在制备治疗 由于放射性治疗或化疗所致白血球减少症、爱滋病及其他免疫缺陷病、细菌感 染疾病的药物中的应用。
+[175] 另一方面，本发明提供一种药物组合物，其含有药物有效剂量的本发明偶 联物或其药学上可接受的盐，和药学上可接受的载体。
+[176] 进一步，本发明还涉及所述药物组合物在制备治疗由于放射性治疗和化疗 所致白血球减少症、爱滋病及其他免疫缺陷病、细菌感染等疾病的药物中的应 用。
+[178] 本发明公开了一类全新的聚乙二醇修饰的 G-CSF 偶联物及其全新的制备 方法，同传统的偶联物和方法相比，存在以下差别：
+[179] 首先，利用在聚乙二醇和G-CSF 之间引入连接基团的新概念，可以
+[180] 保证在蛋白的N 末端反应的专一性，因为用小分子修饰 N 末端所得的蛋 白容易分离、提纯，保证了修饰点的专一性；
+[181] 其次，由于连接基团中巯基的存在，通过控制反应体系的 PH,   确保了具 有高专一性的迈克尔加成反应的进行；
+[182] 另外，由于连接基团的存在，其他功能基团亦有可能加入，如亚酰胺基、 酯基的引入，这为在体内由偶联物释放G-CSF 提供了前提条件。
+[183] 本发明的偶联物或其药学上可接受的盐具有天然人源 G-CSF 生理活性， 而且具有比G-CSF 更长的体内循环半衰期和更好的粒细胞刺激因子活性。
+[184] 具体而言，本发明所公开的偶联物结构式由(Ⅱ)表示：
+[186] (I)
+[187] 其中，
+[188] R 选 自C1-4的直链或支链烷基，优选甲基或乙基，更优选甲基；
+[189] R₁ 、R₂ 彼此独立地选自氢或C1-4直链或支链烷基，优选氢、甲基或乙基；
+[192] X 选自O 、S 、NH 、   Hn[n]Hn或
+[193] 1选自1-20的整数，优选1-10的整数，更优选1-5的整数； m 选自50-2500的整数，优选100-1000的整数；
+[194] n 选自1-20的整数，优选1-10的整数，更优选1-5的整数。
+[196] G’选自天然G-CSF、基因重组G-CSF 或者具有G-CSF功能的基因突变产物。
+[197] 当 X 为 0 、S 时，聚乙二醇与 G-CSF 之间的连接基团中存在一个在体内 易被酯酶水解的酯键，此时，G-CSF 可以以其自由形式与受体作用而体现生物 活性；
+[199] 当 X 为 NH、 \fracHN[\frac1n]\fracHN或                      时，其生物活性主要由
+[200] 偶联物本身实现，当然，由于亚酰胺键在体内亦有被水解而释放 G-CSF 的能 力，因此也不排除自由G-CSF 起作用的可能。
+[201] 在本发明公开的制备方法中，首先通过还原胺化反应将含有巯基的连接基 团与G-CSF 的 N 末端氨基反应得到中间体 ( IV) 。 其实可以通过多种反应方 式将连接基团与 G-CSF 中氨基反应而连接(如各种活化酯与氨基的反应), 但考虑到醛基与N 末端氨基反应的高选择性，因此在本发明中由醛基与G-CSF 中的 N 末端氨基发生还原胺化反应引入连接基团。所用的还原剂选自本领域 技术人员所熟知的各种还原剂，优选氰基硼氢化钠、三乙酰氧基硼氢化钠。
+[202] 在中间体( V)  的制备中，根据巯基保护基团的不同，选择不同的反应条 件。当保护基团为三苯甲基或叔丁基时，使用酸性条件(如三氟乙酸、盐酸、 甲磺酸等)脱保护基团；当保护基团为乙酰基、丙酰基等时，使用本领域技术 人员熟知的各种方法、试剂脱保护基团，优选在PH=5-7时用盐酸羟胺脱保护 基团。
+[203] 在通式化合物 ( I)    的制备中，反应通过控制反应PH 值，利用经典的迈 克尔加成来实现，该反应具有很好的选择性，可达到99%以上。反应结束后可 用反相高效液相制备柱、离子交换柱或凝胶柱分离纯化。
+[204] 在本发明中，“C₁-4烷基”指直链或支链饱和脂肪族碳氢基，如甲基、乙基、 丙基、异丙基、丁基等。
+[205] 在本发明中，优选人源G-CSF,  由于没有其内部序列的改变，这样会减少 蛋白的体内抗原性，最低限度的降低体内中和抗体的形成，提高药效。G-CSF 以及 G-CSF 的变体蛋白可由文献报道的方法用传统的基因表达的方法获得， 包括但不限于Met-G-CSF 、Trp-G-CSF 、Asp-G-CSF 、Glu-G-CSF, 优选以大肠
+[207] 杆菌表达来源的Met-G-CSF ( 序列见SEQ   ID    NO:1)。
+[208] 本发明所得化合物通常以剂量单元给药。所说的剂量单元可以更好的表述 为将活性化合物与制药赋形剂混合所得的药物组合物。
+[209] 在本发明所提供的药物组合物中，通式( I) 、(Ⅱ)       偶联物或其药学上可 接受的盐为活性化合物。本发明所提供的药物组合物可以作为癌症病人正在进 行化疗或放射性治疗以及骨髓移植病人的辅助治疗，以防止由于体内免疫能力 下降而造成的感染；也可用于慢性或相对的白细胞减少患者的治疗；亦可用于 急性髓细胞性白血病患者、爱滋病或其他缺陷性疾病的治疗；同时可用于抗真 菌，尤其是对全身性或侵袭性念珠菌感染的治疗。
+[210] 通式( I) 、(Ⅱ)     偶联物或其药学上可接受的盐给药的剂量为5-500ug/kg,   其中“ug”指通式 ( I) 、(I)         偶联物或其药学上可接受盐的计量单位，“kg”指  哺乳动物体重的计量单位。当然，如我们所知道的，给药的剂量及给药的频率 依赖于许多因素，如病人的性别、年龄，病人所需预防或治疗疾病的种类等。
+[211] 将本发明所得偶合物或其药学上可接受盐与传统的制药载体混合可制备 成各种单元形式，选用不同的方式给药，如皮下、肌内、静脉。
+[214] 附图的详细说明
+[215] 图1:  本发明化合物1的MALDI-TOF-TOF 图；
+[216] 图2:  本发明化合物2的MALDI-TOF-TOF 图；
+[217] 图 3 :  PEG-G-CSF,G-CSF 对环磷酰胺处理的小鼠外周血白细胞计数的影响 图；
+[218] 图 4:   PEG-G-CSF,G-CSF  对环磷酰胺处理的小鼠外周血红细胞计数的影响 图；
+[219] 图 5 :  PEG-G-CSF,G-CSF 对环磷酰胺处理的小鼠外周血血小板计数的影响 图
+[221] 具体实施方式
+[222] 为了更详细地说明本发明，给出下述例子。但本发明的范围并非限定于此。 实施例一
+[223] Met-G-CSF的还原胺化
+[224] 40mg/140ml
+[228] 7.0mg
+[229] 176mg
+[230] 取 Met-G-CSF 原液透析转换为0.1M 的乙酸/乙酸钠溶液，取140毫升， 约含蛋白40毫克。取小分子醛(7.0mg),     溶解于乙腈(300ml)  中，加入到 蛋白液中，再加入氰基硼氢化钠(176mg),     室温搅拌反应3小时。
+[231] 将反应液用含2mM EDTA的0.1M 的 PBS 溶液( PH=6.2)  于4℃透析。 实施例二
+[232] 脱巯基保护基-乙酰基
+[233] 将实施例一中所制备的蛋白液中加入10ml 配置好的0.1M  的盐酸羟胺 	(PH=6.3),     使其浓度为50mM,  室温搅拌反应30分钟，以脱乙酰基使巯基 游离。
+[236] 实施例三
+[237] mPEG-Met-G-CSF(39KD)的制备
+[238] 将实施例二中所制备的蛋白溶液中加入mPEG-MAL(400mg,20KD),
+[239] 室温下搅拌反应60分钟， HPLC 中控反应结束后，直接进行制备纯化，所得 化合物为本发明化合物1,经MALDI-TOF-TOF 确证结构正确，见图谱1。
+[240] 中控条件：
+[241] 分析柱：Jupiter C4,5u,300A,150*4.6
+[245] 流动相：A:0.05%TFA/H₂ O
+[246] 梯度条件：
+[247] 0’                   30’
+[248] A     60%              20%
+[249] B       40%               80%
+[250] 分离纯化条件：
+[253] B:0.05%TFA/CH₃CN
+[256] 36’
+[257] 60%
+[258] 40%
+[260] 使用SP  Sepharose  H.P 填装柱子， 1.6cm×12cm,   体积约24ml,   流速： 4ml/min,
+[261] 柱子的前处理：先用0.5M NaOH溶液洗5倍体积；
+[262] 再用纯化水洗至中性；
+[263] 再用20mM  HAc/NaAc,pH4.0洗5倍体积至平衡。
+[264] 上样：用泵直接将脱盐后样品吸入柱中；
+[265] 洗脱：先用20mM   HAc/NaAc,pH4.0 洗脱10倍柱体积，以除掉过量的 PEG;
+[266] 再设置盐梯度：0～50%,50min,4ml/min,    将产杂质、产物以及未反应的 蛋白依次洗脱收集。
+[267] 实施例四
+[268] mPEG-Met-G-CSF(59KD)的制备
+[269] 制备和分离、纯化方法同实施例三，不同之处在于将 mPEG-MAL(400mg,  20KD) 替换为mPEG-MAL(800mg,40KD),       所得化合物为本发明化合物2, MALDI-TOF-TOF 见图谱2。
+[270] 实施例五
+[271] mPEG-Met-G-CSF(39KD)即化合物1注射剂的制备 醋酸钠：            0.12克
+[272] 聚山梨酯20:        35毫克
+[273] 山梨醇：            50克
+[275] 化合物1:             10克
+[276] 在无菌配料间里，称取醋酸钠(0.12克)、聚山梨酯20(35毫克)、山梨
+[278] 醇(50克),加注射用水(1000毫升),搅拌，使之溶解，加入化合物1(10 克)搅拌均匀，加注射用水至3000毫升，在无菌条件下，用0.22 μm 微孔滤 膜过滤后分装，加灭菌塞并轧外盖，即得。
+[280] 试验例一
+[281] PEG-G-CSF和G-CSF升高小鼠外周血白细胞计数的作用比较 注明：PEG-G-CSF指本发明化合物1。
+[282] 1  试验目的
+[283] 评价并比较PEG-G-CSF 和 G-CSF升高环磷酰胺处理小鼠外周血白细胞计数的 疗效。
+[284] 2材料及方法：
+[285] PEG-G-CSF,  G-CSF,  环磷酰胺(CTX),  由江苏豪森药业股份有限公司提 供；使用前以生理盐水稀释。
+[286] 昆明种小鼠，购自中科院上海实验动物中心，体重18-22g,  早，各组动 物数：10只。
+[287] 动物经适应后，腹腔注射环磷酰胺，第2天皮下注射 PEG-G-CSF,G-CSF。 PEG-G-CSF 0.5 、1.0 mg/kg 皮下注射1次；G-CSF 每天皮下注射1次，连续4 次，剂量分别为0.1、0.2mg/kg。给药结束后断颈处死小鼠，取血。血细胞计 数用 ABC 全自动血球计数仪计数。
+[288] 3  结果
+[289] 腹腔注射CTX明显降低小鼠外周血白细胞、红细胞、血小板计数(均P<0.01 与对照比，图3-5),说明CTX 是一个较强的骨髓抑制剂。
+[290] PEG-G-CSF 单次皮下注射使环磷酰胺处理后的小鼠外周血白细胞计数升 高，0.5mg/kg 给药时，使白细胞计数回复到正常水平；1.0mg/kg 给药时，外 周血白细胞计数甚至高于正常水平(P<0.01 与对照比，图3)。但PEG-G-CSF 对 外周血红细胞和血小板计数没有明显的升高作用(图4,3),说明 PEG-G-CSF
+[292] 作用的特异性。
+[293] G-CSF 连续皮下注射同样升高环磷酰胺处理小鼠的外周血白细胞计数。 0.1mg/kg  给药时，白细胞计数升到正常水平；0.2mg/kg  给药时，白细胞计数 高于正常水平(P<0.01与对照相比，图3),有明显的剂量依赖性。但 G-CSF 对 外周血红细胞、血小板计数没有明显影响(图4,5)。
+[294] 综合以上结果，在给药总剂量相当的情况下比较，PEG-G-CSF 单次皮下注射 与G-CSF  多次皮下注射对小鼠外周血白细胞计数的疗效相当。
+[295] 4 结论
+[296] PEG-G-CSF 和 G-CSF  均明显升高环磷酰胺处理小鼠的外周血白细胞计 数；在给药总剂量相当的情况下，本发明化合物1单次皮下注射与 G-CSF 多 次皮下注射对小鼠外周血白细胞计数的疗效相当。
+[298] 天然G -CSF 或基因重组GCSF  以及具有G-CSF  生理功能的基因突变产物氨
+[299] 基酸序列表
+[302] <110>  江苏恒瑞医药股份有限公司
+[303] <120>  水溶性聚合物修饰的G-CSF 偶联物 <130>
+[304] <160>  10
+[305] <170>    PatentIn      version      3.3 <210>  1
+[306] <211>  175
+[307] <212>  PRT <213>
+[308] <400>  1
+[309] Met  Thr  Pro  Leu  Gly  Pro  Ala  Ser  Ser  Leu  Pro  Gln  Ser  Phe  Leu  Leu
+[310] 1               5                   10                  15
+[311] Lys  Cys  Leu   Glu  Gln  Val  Arg  Lys   Ile   Gln  Gly  Asp  Gly  Ala  Ala  Leu
+[312] 20                  25                  30
+[313] Gln  Glu  Lys  Leu   Cys  Ala   Thr  Tyr  Lys  Leu   Cys  His  Pro   Glu   Glu  Leu
+[314] 35                  40                  45
+[315] Val  Leu  Leu  Gly  His  Ser  Leu  Gly  Ile  Pro  Trp  Ala  Pro  Leu  Ser  Ser
+[316] 50                  55                  60
+[317] Cys  Pro  Ser  Gln  Ala   Leu  Gln  Leu  Ala   Gly  Cys  Leu  Ser  Gln  Leu  His 65                    70                  75                  80
+[319] Ser  Gly  Leu  Phe  Leu  Tyr  Gln  Gly  Leu  Leu  Gln  Ala  Leu  Glu  Gly  Ile
+[320] 85                  90                  95
+[321] Ser  Pro  Glu  Leu  Gly  Pro  Thr  Leu  Asp   Thr  Leu   Gln  Leu  Asp  Val  Ala 100                   105                   110
+[323] Asp Phe Ala Thr Thr Ile Trp Gln Gln Met Glu Glu Leu Gly Met Ala
+[324] 115                                          120                                          125
+[325] Pro Ala Leu Gln Pro Thr Gln Gly Ala Met Pro Ala Phe Ala Ser Ala
+[326] 130                                       135                                          140
+[327] Phe Gln Arg Arg Ala Gly Gly Val Leu Val Ala Ser His Leu Gln Ser  145                            150                              155                           160 Phe Leu Glu Val Ser Tyr Arg Val Leu Arg His Leu Ala Gln Pro
+[328] 165                              170                              175
+[331] <210>     2
+[332] <211>     174
+[333] <212>     PRT
+[334] <213>
+[335] <400>     2
+[336] Thr Pro Leu Gly Pro Ala Ser Ser Leu Pro Gln Ser Phe Leu Leu Lys 1                                   5                                 10                               15
+[337] Cys Leu Glu Gln Val Arg Lys Ile Gln Gly Asp Gly Ala Ala Leu Gln
+[338] 20                               25                               30
+[339] Glu Lys Leu Cys Ala Thr Tyr Lys Leu Cys His Pro Glu Glu Leu Val
+[340] 35                                       40                                     45
+[341] Leu Leu Gly His Ser Leu Gly Ile Pro Trp Ala Pro Leu Ser Ser Cys
+[342] 50                                      55                                      60
+[343] Pro Ser Gln Ala Leu Gln Leu Ala G1y Cys Leu Ser Gln Leu His Ser
+[344] 65                                     70                                         75                                    80   Gly Leu Phe Leu Tyr Gln Gly Leu Leu Gln Ala Leu Glu Gly Ile Ser
+[345] 85                                    90                                        95
+[346] Pro Glu Leu Gly Pro Thr Leu Asp Thr Leu Gln Leu Asp Val Ala Asp
+[347] 100                                        105                                    110
+[349] Phe Ala Thr Thr Ile Trp Gln Gln Met Glu Glu Leu Gly Met Ala Pro
+[350] 115                              120                                 125
+[351] Ala Leu G1n Pro Thr Gln Gly Ala Met Pro Ala Phe Ala Ser Ala Phe
+[352] 130                                          135                                          140
+[353] G1n Arg Arg Ala Gly Gly Val Leu Val Ala Ser His Leu Gln Ser Phe
+[354] 145                                      150                                      155                                     160 Leu Glu Val Ser Tyr Arg Val Leu Arg His Leu Ala Gln Pro
+[355] 165                                    170
+[358] <210>    3
+[359] <211>      175
+[360] <212>    PRT
+[361] <213>
+[362] <400>    3
+[363] Met Thr Pro Leu Gly Pro Ala Ser Ser Leu Pro Gln Ser Phe Leu Leu 1                                          5                                                    10                                       15
+[364] Lys Ser Leu Glu Gln Val Arg Lys Ile Gln Gly Asp Gly Ala Ala Leu
+[365] 20                                       25                                       30
+[366] Gln Glu Lys Leu Cys Ala Thr Tyr Lys Leu Cys His Pro Glu Glu Leu
+[367] 35                                  40                                   45
+[368] Val Leu Leu Gly His Ser Leu Gly Ile Pro Trp Ala Pro Leu Ser Ser
+[369] 50                                           55                                      60
+[370] Cys Pro Ser Gln Ala Leu Gln Leu Ala Gly Cys Leu Ser Gln Leu His
+[371] 65                             70                               75                               80  Ser Gly Leu Phe Leu Tyr Gln Gly Leu Leu Gln Ala Leu Glu Gly Ile
+[372] 85                            90                                   95
+[373] Ser Pro Glu Leu Gly Pro Thr Leu Asp Thr Leu Gln Leu Asp Val Ala
+[374] 100                              105                           110
+[376] Asp Phe Ala Thr Thr Ile Trp Gln Gln Met Glu Glu Leu Gly Met Ala
+[377] 115                               120                                      125
+[378] Pro Ala Leu Gln Pro Thr Gln Gly Ala Met Pro Ala Phe Ala Ser Ala
+[379] 130                                       135                                      140
+[380] Phe Gln Arg Arg Ala Gly Gly Val Leu Val Ala Ser His Leu Gln Ser 145                             150                               155                            160 Phe Leu Glu Val Ser Tyr Arg Val Leu Arg His Leu Ala Gln Pro
+[381] 165                               170                            175
+[384] <210>       4
+[385] <211>     174
+[386] <212>      PRT
+[387] <213>
+[388] <400>     4
+[389] Thr Pro Leu Gly Pro Ala Ser Ser Leu Pro Gln Ser Phe Leu Leu Lys 1                                          5                                                   10                                       15
+[390] Ser Leu Glu Gln Val Arg Lys Ile Gln Gly Asp Gly Ala Ala Leu Gln
+[391] 20                                      25                                       30
+[392] Glu Lys Leu Cys Ala Thr Tyr Lys Leu Cys His Pro Glu Glu Leu Val
+[393] 35                               40                               45
+[394] Leu Leu Gly His Ser Leu Gly Ile Pro Trp Ala Pro Leu Ser Ser Cys
+[395] 50                                       55                                  60
+[396] Pro Ser Gln Ala Leu Gln Leu Ala Gly Cys Leu Ser Gln Leu His Ser
+[397] 65                                     70                                        75                            80  Gly Leu Phe Leu Tyr Gln Gly Leu Leu Gln Ala Leu Glu Gly Ile Ser
+[398] 85                           90                                        95
+[399] Pro Glu Leu Gly Pro Thr Leu Asp Thr Leu Gln Leu Asp Val Ala Asp
+[400] 100                                       105                             110
+[402] Phe Ala Thr Thr Ile Trp Gln Gln Met Glu Glu Leu Gly Met Ala Pro
+[403] 115                                    120                                      125
+[404] Ala Leu Gln Pro Thr Gln Gly Ala Met Pro Ala Phe Ala Ser Ala Phe
+[405] 130                                            135                                       140
+[406] Gln Arg Arg Ala Gly G1y Val Leu Val Ala Ser His Leu Gln Ser Phe
+[407] 145                                    150                                        155                                   160 Leu Glu Val Ser Tyr Arg Val Leu Arg His Leu Ala Gln Pro
+[408] 165                                    170
+[411] <210>    5
+[412] <211>     175
+[413] <212>    PRT
+[414] <213>
+[415] <400>     5
+[416] Trp Thr Pro Leu Gly Pro Ala Ser Ser Leu Pro Gln Ser Phe Leu Leu 1                           5                                  10                                15
+[417] Lys Cys Leu Glu G1n Val Arg Lys Ile Gln Gly Asp Gly Ala Ala Leu
+[418] 20                                25                             30
+[419] Gln Glu Lys Leu Cys Ala Thr Tyr Lys Leu Cys His Pro Glu Glu Leu
+[420] 35                              40                              45
+[421] Val Leu Leu Gly His Ser Leu Gly Ile Pro Trp Ala Pro Leu Ser Ser
+[422] 50                                      55                                       60
+[423] Cys Pro Ser Gln Ala Leu G1n Leu Ala Gly Cys Leu Ser Gln Leu His
+[424] 65                             70                                75                               80  Ser Gly Leu Phe Leu Tyr Gln Gly Leu Leu Gln Ala Leu Glu Gly Ile
+[425] 85                             90                                95
+[426] Ser Pro Glu Leu Gly Pro Thr Leu Asp Thr Leu Gln Leu Asp Val Ala
+[427] 100                              105                           110
+[429] Asp Phe Ala Thr Thr Ile Trp Gln Gln Met Glu Glu Leu Gly Met Ala
+[430] 115                                          120                                          125
+[431] Pro Ala Leu Gln Pro Thr Gln Gly Ala Met Pro Ala Phe Ala Ser Ala
+[432] 130                                          135                                          140
+[433] Phe Gln Arg Arg Ala G1y Gly Val Leu Val Ala Ser His Leu Gln Ser 145                                     150                                 155                                   160 Phe Leu Glu Val Ser Tyr Arg Val Leu Arg His Leu Ala Gln Pro
+[434] 165                                 170                                     175
+[437] <210>     6
+[438] <211>      175
+[439] <212>      PRT
+[440] <213>
+[441] <400>     6
+[442] Trp Thr Pro Leu Gly Pro Ala Ser Ser Leu Pro Gln Ser Phe Leu Leu 1                                          5                                                    10                                       15
+[443] Lys Ser Leu Glu Gln Val Arg Lys Ile Gln G1y Asp Gly Ala Ala Leu
+[444] 20                                        25                                        30
+[445] Gln Glu Lys Leu Cys Ala Thr Tyr Lys Leu Cys His Pro Glu Glu Leu
+[446] 35                                        40                                   45
+[447] Val Leu Leu Gly His Ser Leu Gly Ile Pro Trp Ala Pro Leu Ser Ser
+[448] 50                                         55                                    60
+[449] Cys Pro Ser Gln Ala Leu Gln Leu Ala Gly Cys Leu Ser Gln Leu His 65                             70                                75                               80  Ser Gly Leu Phe Leu Tyr Gln Gly Leu Leu Gln Ala Leu Glu Gly Ile
+[450] 85                             90                               95
+[451] Ser Pro Glu Leu Gly Pro Thr Leu Asp Thr Leu Gln Leu Asp Val Ala
+[452] 100                              105                              110
+[454] Asp Phe Ala Thr Thr Ile Trp Gln Gln Met Glu Glu Leu Gly Met Ala
+[455] 115                                    120                                         125
+[456] Pro Ala Leu G1n Pro Thr Gln G1y Ala Met Pro Ala Phe Ala Ser Ala
+[457] 130                                     135                                   140
+[458] Phe Gln Arg Arg Ala Gly Gly Val Leu Val Ala Ser His Leu Gln Ser 145                             150                            155                            160
+[460] Phe Leu Glu Val Ser Tyr Arg Val Leu Arg His Leu Ala Gln Pro 165                             170                               175
+[464] <210>     7
+[465] <211>     175
+[466] <212>     PRT
+[467] <213>
+[468] <400>     7
+[469] Asp Thr Pro Leu G1y Pro Ala Ser Ser Leu Pro Gln Ser Phe Leu Leu 1                                          5                                                    10                                         15
+[470] Lys Cys Leu Glu Gln Val Arg Lys Ile Gln Gly Asp Gly Ala Ala Leu
+[471] 20                                        25                                        30
+[472] Gln Glu Lys Leu Cys Ala Thr Tyr Lys Leu Cys His Pro Glu Glu Leu
+[473] 35                                       40                                           45
+[474] Val Leu Leu G1y His Ser Leu Gly Ile Pro Trp Ala Pro Leu Ser Ser
+[475] 50                                  55                                  60
+[476] Cys Pro Ser Gln Ala Leu Gln Leu Ala Gly Cys Leu Ser Gln Leu His 65                                   70                                       75                                  80  Ser Gly Leu Phe Leu Tyr Gln Gly Leu Leu Gln Ala Leu Glu Gly Ile
+[477] 85                                    90                                        95
+[479] Ser Pro Glu Leu Gly Pro Thr Leu Asp Thr Leu Gln Leu Asp Val Ala 100                            105                                         110
+[480] Asp Phe Ala Thr Thr Ile Trp Gln Gln Met Glu Glu Leu Gly Met Ala
+[481] 115                                     120                                    125
+[482] Pro Ala Leu Gln Pro Thr Gln Gly Ala Met Pro Ala Phe Ala Ser Ala
+[483] 130                                          135                                          140
+[484] Phe Gln Arg Arg Ala Gly Gly Val Leu Val Ala Ser His Leu Gln Ser  145                                            150                                          155                                    160 Phe Leu Glu Val Ser Tyr Arg Val Leu Arg His Leu Ala Gln Pro
+[485] 165                                        170                                            175
+[488] <210>     8
+[489] <211>     175
+[490] <212>     PRT
+[491] <213>
+[492] <400>    8
+[493] Asp Thr Pro Leu Gly Pro Ala Ser Ser Leu Pro Gln Ser Phe Leu Leu 1                                        5                                                   10                                         15
+[494] Lys Ser Leu Glu Gln Val Arg Lys Ile Gln Gly Asp Gly Ala Ala Leu
+[495] 20                                        25                                     30
+[496] Gln Glu Lys Leu Cys Ala Thr Tyr Lys Leu Cys His Pro Glu Glu Leu
+[497] 35                                   40                                       45
+[498] Val Leu Leu Gly His Ser Leu Gly Ile Pro Trp Ala Pro Leu Ser Ser
+[499] 50                                         55                                    60
+[500] Cys Pro Ser Gln Ala Leu Gln Leu Ala G1y Cys Leu Ser Gln Leu His 65                                   70                                       75                                  80  Ser Gly Leu Phe Leu Tyr Gln Gly Leu Leu Gln Ala Leu Glu Gly Ile
+[501] 85                                    90                                        95
+[503] Ser Pro Glu Leu Gly Pro Thr Leu Asp Thr Leu Gln Leu Asp Val Ala
+[504] 100                               105                                 110
+[505] Asp Phe Ala Thr Thr Ile Trp Gln Gln Met Glu Glu Leu Gly Met Ala
+[506] 115                                    120                                              125
+[507] Pro Ala Leu G1n Pro Thr Gln Gly Ala Met Pro Ala Phe Ala Ser Ala
+[508] 130                                          135                                      140
+[509] Phe Gln Arg Arg Ala Gly Gly Val Leu Val Ala Ser His Leu Gln Ser 145                                   150                                      155                                       160 Phe Leu Glu Val Ser Tyr Arg Val Leu Arg His Leu Ala Gln Pro
+[510] 165                                   170                                          175
+[513] <210>     9
+[514] <211>     175
+[515] <212>    PRT
+[516] <213>
+[517] <400>     9
+[518] Glu Thr Pro Leu Gly Pro Ala Ser Ser Leu Pro Gln Ser Phe Leu Leu 1                              5                                         10                                       15
+[519] Lys Cys Leu Glu G1n Val Arg Lys Ile Gln Gly Asp Gly Ala Ala Leu
+[520] 20                                      25                                  30
+[521] Gln Glu Lys Leu Cys Ala Thr Tyr Lys Leu Cys His Pro Glu Glu Leu
+[522] 35                                  40                                       45
+[523] Val Leu Leu Gly His Ser Leu Gly Ile Pro Trp Ala Pro Leu Ser Ser
+[524] 50                                       55                                    60
+[525] Cys Pro Ser Gln Ala Leu Gln Leu Ala Gly Cys Leu Ser Gln Leu His 65                              70                                75                               80  Ser Gly Leu Phe Leu Tyr Gln Gly Leu Leu Gln Ala Leu Glu Gly Ile
+[526] 85                                  90                                  95
+[528] Ser Pro Glu Leu Gly Pro Thr Leu Asp Thr Leu Gln Leu Asp Val Ala
+[529] 100                               105                                    110
+[530] Asp Phe Ala Thr Thr Ile Trp Gln Gln Met Glu Glu Leu Gly Met Ala
+[531] 115                                    120                                              125
+[532] Pro Ala Leu Gln Pro Thr Gln Gly Ala Met Pro Ala Phe Ala Ser Ala
+[533] 130                                      135                                       140
+[534] Phe Gln Arg Arg Ala Gly Gly Val Leu Val Ala Ser His Leu Gln Ser 145                                150                                    155                               160 Phe Leu Glu Val Ser Tyr Arg Val Leu Arg His Leu Ala Gln Pro
+[535] 165                                          170                                        175
+[538] <210>      10
+[539] <211>     175
+[540] <212>     PRT
+[541] <213>
+[542] <400>      10
+[543] Glu Thr Pro Leu Gly Pro Ala Ser Ser Leu Pro Gln Ser Phe Leu Leu 1                                    5                                            10                                           15
+[544] Lys Ser Leu Glu Gln Val Arg Lys Ile Gln Gly Asp Gly Ala Ala Leu
+[545] 20                                      25                                          30
+[546] Gln Glu Lys Leu Cys Ala Thr Tyr Lys Leu Cys His Pro Glu Glu Leu
+[547] 35                               40                              45
+[548] Val Leu Leu Gly His Ser Leu Gly Ile Pro Trp Ala Pro Leu Ser Ser
+[549] 50                              55                             60
+[550] Cys Pro Ser Gln Ala Leu Gln Leu Ala Gly Cys Leu Ser Gln Leu His 65                                         70                                            75                                            80  Ser Gly Leu Phe Leu Tyr Gln Gly Leu Leu Gln Ala Leu Glu Gly Ile
+[551] 85                                     90                                      95
+[553] Ser Pro Glu Leu Gly Pro Thr Leu Asp Thr Leu Gln Leu Asp Val Ala
+[554] 100                                       105                                       110
+[555] Asp Phe Ala Thr Thr Ile Trp Gln Gln Met Glu Glu Leu Gly Met Ala
+[556] 115                               120                                       125
+[557] Pro Ala Leu Gln Pro Thr Gln Gly Ala Met Pro Ala Phe Ala Ser Ala
+[558] 130                                       135                                    140
+[559] Phe Gln Arg Arg Ala Gly Gly Val Leu Val Ala Ser His Leu Gln Ser 145                                         150                                    155                                    160 Phe Leu Glu Val Ser Tyr Arg Val Leu Arg His Leu Ala Gln Pro
+[560] 165                                       170                                      175
+[563] 200610142737.2                                         说  明  书  附  图                  第1/5页
+[579] Voyager Spec#1=>NF0.7=>RSM2000=>MC[BP=10164.2,300]
+[580] 83. 1
+[596] 27140.0               32687.4          38234.8                               43782.2 Mass(m/z)
+[598] 图1
+[619] 29
+[623] 200610142737.2                                                                                                             说  明   书  附   图  第2/5页
+[642] Voyager     Spec#1=>NF0.7=>TR=>RSM2000[BP=20870.1,37]
+[646] 图2
+[665] 0.5mgkg  1.0mg/kg
+[668] 图3
+[683] confrol      CTX     PEG-G-PEG-G-    G-CSF G-CSF  CSF      CSF      0.1mgkg  0.2mgkg
+[684] 0.5mgkg 1.0mgkg
+[687] 图 4
+[707] 图5
