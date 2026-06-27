@@ -34,20 +34,22 @@
 
 ---
 
-## 步骤 3：配置 Dockerfile
+## 步骤 3：配置构建
 
-Railway 会自动检测项目中的 Dockerfile。当前项目的 `server/Dockerfile` 如下：
+### 方式 A：使用根目录配置（推荐）
+
+Railway 默认从项目根目录查找配置。当前项目已在根目录创建了 `Dockerfile.server`：
 
 ```dockerfile
 FROM node:20-alpine
 
-WORKDIR /app
+WORKDIR /app/server
 
-COPY package*.json ./
+COPY server/package*.json ./
 
 RUN npm ci --only=production
 
-COPY . .
+COPY server/ .
 
 RUN npx prisma generate
 
@@ -56,13 +58,21 @@ EXPOSE 3002
 CMD ["node", "index.js"]
 ```
 
-**注意**：Railway 默认从项目根目录查找 Dockerfile。我们需要修改配置，让它从 `server/` 目录构建。
-
-### 修改构建配置
+**配置步骤**：
 
 1. 部署完成后，点击项目名称进入项目详情页
 2. 点击左侧菜单中的 **Settings**
 3. 在 **Build Settings** 部分：
+   - 设置 **Build Command** 为空（使用 Dockerfile）
+   - 设置 **Dockerfile Path** 为 `Dockerfile.server`
+
+![Build Settings](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=Railway%20build%20settings%20Dockerfile%20configuration%20UI&image_size=landscape_16_9)
+
+### 方式 B：使用 server/ 目录
+
+如果不想使用 Dockerfile.server，可以直接配置使用 `server/` 目录：
+
+1. 在 **Build Settings** 部分：
    - 设置 **Root Directory** 为 `server`
    - 设置 **Dockerfile Path** 为 `Dockerfile`
 
