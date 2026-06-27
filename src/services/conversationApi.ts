@@ -8,7 +8,7 @@ import type { Conversation, Message, AttachedFile } from './types';
 import { recentConversations, delay, generateId } from './mockData';
 
 // API 配置
-const API_BASE_URL = '/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 // 内存中维护对话数据
 let conversations = [...recentConversations];
