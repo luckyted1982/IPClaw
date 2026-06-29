@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import prisma from '../lib/prisma.js';
 import { getToolRegistry, initializeTools } from './tools/ToolRegistry.js';
+import creditService from '../services/CreditService.js';
 
 const PATSEEK_API_KEY = process.env.PATSEEK_API_KEY || 'ps_0931e2efa48df3aa2596de57c27d9449';
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
@@ -96,7 +97,7 @@ export class AgentExecutor {
       await this.initialize();
     }
 
-    const { stream = false, userId = null } = options;
+    const { stream = false, userId = null, skipCredits = false } = options;
 
     const systemPrompt = this.buildSystemPrompt(messages[messages.length - 1]?.content);
 
@@ -117,6 +118,7 @@ export class AgentExecutor {
       await this.saveUserMessage(userId, messages[messages.length - 1].content);
     }
 
+    const startTime = Date.now();
     const response = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -138,8 +140,39 @@ export class AgentExecutor {
     const result = await response.json();
     const replyContent = result.choices[0]?.message?.content || '';
 
-    if (userId) {
-      await this.saveAssistantMessage(userId, replyContent);
+    // 获取 token 使用量
+    const usage = result.usage || {};
+    const inputTokens = usage.prompt_tokens || 0;
+    const outputTokens = usage.completion_tokens || 0;
+
+    if (userId && !skipCredits) {
+      await this.saveAssistantMessage(userId, replyContent, inputTokens, outputTokens);
+
+      // 计算并扣除积分
+      try {
+        const creditsToDeduct = creditService.calculateChatCredits(
+          this.agent.modelName || 'deepseek-chat',
+          inputTokens,
+          outputTokens
+        );
+
+        await creditService.consumeCredits(userId, creditsToDeduct, {
+          category: 'chat',
+          description: `与智能体 ${this.agent.name} 对话`,
+          referenceId: this.agentId,
+          serviceType: 'agent_chat',
+          modelName: this.agent.modelName || 'deepseek-chat',
+          inputTokens,
+          outputTokens,
+        });
+
+        console.log(`[Credit] User ${userId} charged ${creditsToDeduct} credits for chat with agent ${this.agent.name}`);
+      } catch (creditError) {
+        console.error('[Credit] Failed to deduct credits:', creditError.message);
+        // 积分扣除失败不影响对话返回，但记录错误
+      }
+    } else if (userId) {
+      await this.saveAssistantMessage(userId, replyContent, inputTokens, outputTokens);
     }
 
     return replyContent;
@@ -231,7 +264,7 @@ export class AgentExecutor {
     });
   }
 
-  async saveAssistantMessage(userId, content) {
+  async saveAssistantMessage(userId, content, inputTokens = 0, outputTokens = 0) {
     const conversation = await prisma.conversation.findFirst({
       where: { agentId: this.agentId, userId, status: 'active' },
     });
@@ -242,6 +275,8 @@ export class AgentExecutor {
           conversationId: conversation.id,
           role: 'assistant',
           content,
+          inputTokens,
+          outputTokens,
         },
       });
     }

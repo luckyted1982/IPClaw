@@ -216,8 +216,11 @@ model Message {
   toolCalls     String?
   toolResults   String?
   metadata      String?
+  inputTokens   Int?
+  outputTokens  Int?
+  creditsConsumed Int     @default(0)
   createdAt     DateTime  @default(now())
-  
+
   conversation  Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   
   @@map("messages")

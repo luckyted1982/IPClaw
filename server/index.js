@@ -55,6 +55,8 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import pointsRoutes from './routes/pointsRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
+import creditRoutes from './routes/creditRoutes.js';
+import adminCreditRoutes from './routes/adminCreditRoutes.js';
 import { callModel, listModels, addModelConfig, updateModelConfig, deleteModelConfig } from './lib/modelGateway.js';
 import { registerClient, unregisterClient, createNotification } from './controllers/notificationController.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -116,6 +118,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/points', pointsRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/credits', creditRoutes);
+app.use('/api/admin/credits', adminCreditRoutes);
 
 app.get('/api/models', async (req, res) => {
   try {

@@ -1,0 +1,664 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== 用户与认证 ====================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  avatar        String?
+  role          String    @default("user")
+  balance       Float     @default(0)
+  trustScore    Int       @default(0)
+  status        String    @default("active")
+  phone         String?
+  userType      String    @default("personal")
+  verified      Boolean   @default(false)
+  companyName   String?
+  companyId     String?
+  idCard        String?
+  subscription  String    @default("free")
+  subscriptionExpiresAt DateTime?
+  lastCheckIn   DateTime?
+  checkInStreak Int       @default(0)
+  totalCheckIns Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  agents        Agent[]
+  tasks         Task[]
+  conversations Conversation[]
+  agentGroups   AgentGroup[]
+  knowledgeBases KnowledgeBase[]
+  notifications Notification[]
+
+  // 积分相关关系
+  creditAccount     CreditAccount?
+  creditTransactions CreditTransaction[]
+  userSubscription  UserSubscription?
+
+  @@map("users")
+}
+
+// ==================== 积分账户 ====================
+
+model CreditAccount {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  totalCredits    Int       @default(0)      // 账户总积分（含已消耗的累计）
+  availableCredits Int      @default(0)      // 可用积分
+  frozenCredits   Int       @default(0)      // 冻结积分（消耗中）
+  spentCredits    Int       @default(0)      // 累计已消耗积分
+  lifetimeSpent   Int       @default(0)      // 终身消耗积分（用于等级计算）
+
+  // 月度配额
+  monthlyQuota    Int       @default(0)      // 本月配额
+  monthlyUsed     Int       @default(0)      // 本月已用
+  quotaResetAt    DateTime  @default(now())  // 配额重置时间
+
+  // 等级信息
+  level           Int       @default(1)      // 用户等级
+  totalPurchased  Int       @default(0)      // 累计充值积分
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("credit_accounts")
+}
+
+// ==================== 积分交易记录 ====================
+
+model CreditTransaction {
+  id              String    @id @default(cuid())
+  userId          String
+  type            String    // 交易类型: reward(奖励), purchase(购买), subscribe(订阅), consume(消耗), refund(退款), expired(过期), transfer_in(转入), transfer_out(转出)
+  amount          Int       // 积分数量（正数增加，负数减少）
+  balanceBefore   Int       // 交易前余额
+  balanceAfter    Int       // 交易后余额
+
+  // 交易详情
+  category        String    // 消费类别: chat(对话), skill(技能), expert(专家), task(任务), knowledge(知识库), document(文档), subscription(订阅), recharge(充值), signup_bonus(注册奖励), checkin_bonus(签到奖励), referral_bonus(推荐奖励), refund(退款)
+  description     String    // 交易描述
+  referenceId     String?   // 关联ID（如订单号、任务ID、对话ID等）
+
+  // 消耗详情（用于消费类交易）
+  serviceType     String?   // 服务类型: agent_chat, skill_execution, expert_consult, task_execution, document_generation, knowledge_query
+  modelName       String?   // 使用的模型名称
+  inputTokens     Int?      // 输入token数
+  outputTokens     Int?      // 输出token数
+  creditsPerThousandTokens Int? // 每千token消耗积分
+
+  // 状态
+  status          String    @default("completed") // pending(待处理), completed(完成), failed(失败), cancelled(取消), reversed(已回滚)
+
+  // 过期信息（仅用于过期类交易）
+  expiresAt       DateTime? // 积分过期时间
+
+  createdAt       DateTime  @default(now())
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, type])
+  @@index([category, createdAt])
+  @@map("credit_transactions")
+}
+
+// ==================== 订阅计划 ====================
+
+model SubscriptionPlan {
+  id              String    @id @default(cuid())
+  name            String    @unique // free, basic, pro, enterprise
+  displayName     String    // 显示名称
+  description     String?   // 计划描述
+
+  // 定价
+  priceMonthly    Int       // 月付价格（积分）
+  priceYearly     Int       // 年付价格（积分）
+  priceCashMonthly Float    // 月付价格（元）
+  priceCashYearly  Float    // 年付价格（元）
+
+  // 配额
+  monthlyCredits  Int       // 每月赠送积分
+  dailyRequests   Int?      // 每日请求上限（可选）
+  monthlyRequests Int?      // 每月请求上限（可选）
+
+  // 功能权限
+  features        String    // JSON格式的功能列表
+
+  // Agent 相关限制
+  maxAgents      Int       @default(0)      // 最大创建 Agent 数量
+  maxAgentChats  Int       @default(0)      // 每月 Agent 对话次数
+  maxSkills      Int       @default(0)      // 最大使用 Skill 数量
+  maxExperts     Int       @default(0)      // 最大咨询专家次数
+  maxTasks       Int       @default(0)      // 最大任务数量
+  maxKnowledgeSize Int     @default(0)      // 知识库最大存储（MB）
+
+  // 并发限制
+  maxConcurrentTasks Int   @default(1)      // 最大并发任务数
+
+  // 优先级
+  priority       Int       @default(0)      // 队列优先级（数字越大越高）
+
+  isActive        Boolean   @default(true)
+  isDefault       Boolean   @default(false) // 是否为默认免费套餐
+  sortOrder       Int       @default(0)     // 排序顺序
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  userSubscriptions UserSubscription[]
+
+  @@map("subscription_plans")
+}
+
+// ==================== 用户订阅 ====================
+
+model UserSubscription {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  planId          String
+
+  // 订阅状态
+  status          String    @default("active") // active, cancelled, expired, suspended
+
+  // 时间
+  startDate       DateTime  @default(now())
+  endDate         DateTime  // 订阅到期时间
+  cancelledAt     DateTime? // 取消时间
+  autoRenew       Boolean   @default(true)    // 是否自动续费
+
+  // 配额使用情况
+  monthlyCreditsGranted Int @default(0)  // 本月已发放积分
+  requestsUsed         Int @default(0)  // 本月已使用请求数
+
+  // 支付信息
+  paymentMethod   String?   // 支付方式: cash(现金), credits(积分)
+  paymentAmount   Float?    // 支付金额
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan            SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@map("user_subscriptions")
+}
+
+// ==================== 积分充值包 ====================
+
+model CreditPackage {
+  id              String    @id @default(cuid())
+  name            String    // 包名称: 500积分包, 1000积分包等
+  displayName     String    // 显示名称
+  description     String?   // 描述
+
+  // 积分数量
+  credits         Int       // 包含积分数量
+  originalCredits Int?      // 原始积分（用于显示折扣前）
+
+  // 价格
+  price           Float     // 价格（元）
+  originalPrice   Float?    // 原价（用于折扣显示）
+
+  // 有效期
+  validityDays    Int       @default(365) // 有效期（天）
+  isActive        Boolean   @default(true)
+  isFeatured      Boolean   @default(false) // 是否推荐
+  sortOrder       Int       @default(0)     // 排序
+
+  // 赠送
+  bonusCredits    Int       @default(0) // 赠送积分
+  bonusPercentage Int?      // 赠送百分比
+
+  // 使用限制
+  maxPurchase     Int?      // 每人最多购买数量
+  purchaseCount   Int       @default(0) // 已购买次数（所有用户）
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  creditOrders    CreditOrder[]
+
+  @@map("credit_packages")
+}
+
+// ==================== 积分订单 ====================
+
+model CreditOrder {
+  id              String    @id @default(cuid())
+  orderNo         String    @unique // 订单号
+
+  userId          String
+  packageId       String
+
+  // 购买数量
+  credits         Int       // 购买积分（含赠送）
+  bonusCredits    Int       @default(0) // 赠送积分
+
+  // 金额
+  originalPrice   Float     // 原价
+  actualPrice     Float     // 实付金额
+  discountAmount  Float     @default(0) // 优惠金额
+
+  // 支付状态
+  status          String    @default("pending") // pending, paid, cancelled, refunded
+  paidAt          DateTime?
+  expiresAt       DateTime? // 积分过期时间
+
+  // 支付信息
+  paymentMethod   String?   // 支付方式: alipay, wechat, stripe, credits
+
+  // 有效期
+  validityStart  DateTime?
+  validityEnd    DateTime?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  package         CreditPackage @relation(fields: [packageId], references: [id])
+
+  @@index([userId, createdAt])
+  @@map("credit_orders")
+}
+
+// ==================== 消费规则 ====================
+
+model ConsumptionRule {
+  id              String    @id @default(cuid())
+  name            String    // 规则名称
+  serviceType     String    @unique // 服务类型: agent_chat, skill_execution, expert_consult, task_execution, document_generation, knowledge_query
+
+  // 积分消耗配置
+  baseCredits     Int       @default(0)   // 基础消耗积分
+  perTokenCredits Float?    // 每 token 消耗（分子，如 0.001 表示每千token 1积分）
+  perMinuteCredits Float?   // 每分钟消耗（用于计时任务）
+
+  // 限额
+  dailyLimit      Int?      // 每日限额
+  monthlyLimit    Int?      // 每月限额
+  perRequestMin   Int?      // 单次最小消耗
+  perRequestMax   Int?      // 单次最大消耗
+
+  // 描述
+  description     String?   // 规则描述
+  example         String?   // 计算示例
+
+  // 模型配置（可选，按模型定价）
+  modelPricing    String?   // JSON: {"deepseek-chat": 1.0, "gpt-4": 3.0}
+
+  isActive        Boolean   @default(true)
+  priority        Int       @default(0) // 优先级
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("consumption_rules")
+}
+
+// ==================== 服务使用记录 ====================
+
+model ServiceUsageLog {
+  id              String    @id @default(cuid())
+  userId          String
+  sessionId       String?   // 对话会话ID
+
+  // 服务信息
+  serviceType     String    // 服务类型
+  action          String    // 具体操作
+
+  // 积分消耗
+  creditsConsumed Int       @default(0) // 本次消耗积分
+
+  // 详细数据
+  modelName       String?   // 使用的模型
+  inputTokens     Int?      // 输入token
+  outputTokens    Int?      // 输出token
+  duration        Int?      // 执行时长（毫秒）
+
+  // 关联信息
+  referenceId     String?   // 关联ID（如任务ID、对话ID、Agent ID等）
+  referenceType   String?   // 关联类型
+
+  // 状态
+  status          String    @default("success") // success, failed, partial
+
+  createdAt       DateTime  @default(now())
+
+  @@index([userId, serviceType, createdAt])
+  @@index([serviceType, createdAt])
+  @@map("service_usage_logs")
+}
+
+// ==================== 积分等级 ====================
+
+model CreditLevel {
+  id              String    @id @default(cuid())
+  level           Int       @unique
+  name            String    // 等级名称: 青铜, 白银, 黄金, 钻石
+  displayName     String
+
+  // 升级条件
+  lifetimeSpent   Int       // 累计消耗达到此积分
+  monthlySpent    Int?      // 月累计消耗（可选）
+
+  // 等级权益
+  discountRate    Float     @default(0) // 消费折扣率（如 0.1 表示9折）
+  bonusRate       Float     @default(0) // 积分加成率（如 0.1 表示每次多得10%）
+  priorityBoost   Int       @default(0) // 优先级提升
+
+  // 功能权限
+  exclusiveFeatures String?  // JSON格式专属功能
+
+  isActive        Boolean   @default(true)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("credit_levels")
+}
+
+// ==================== 专家/技能定价 ====================
+
+model ExpertPricing {
+  id              String    @id @default(cuid())
+  name            String    // 专家/技能名称
+  type            String    // expert 或 skill
+
+  // 积分定价
+  baseCredits     Int       @default(10)  // 基础咨询积分
+  perMinuteCredits Int?     // 每分钟积分
+  perQueryCredits Int?      // 每次查询积分
+  tierMultiplier  Float     @default(1.0) // 等级倍数（高级用户打折）
+
+  // 分类
+  category        String?   // 专业领域
+  level           Int       @default(1) // 专家等级 1-5
+
+  // 描述
+  description     String?
+  capabilities    String?   // JSON: 可处理的业务类型
+
+  isActive        Boolean   @default(true)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("expert_pricing")
+}
+
+// ==================== 任务执行（扩展） ====================
+
+model TaskExecution {
+  id              String    @id @default(cuid())
+  taskId          String
+  agentId         String
+  status          String    @default("assigned")
+  step            String    @default("accepted")
+  progress        Int       @default(0)
+
+  // 输入输出
+  input           String?
+  output          String?
+  result          String?
+  error           String?
+
+  // 执行统计
+  inputTokens     Int?
+  outputTokens    Int?
+  creditsConsumed Int      @default(0)  // 本次任务消耗积分
+
+  // 时间
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  task            Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  agent           Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("task_executions")
+}
+
+// ==================== 现有模型保持不变 ====================
+
+model Agent {
+  id             String     @id @default(cuid())
+  name           String
+  avatar         String
+  title          String?
+  description    String?
+  systemPrompt   String
+  ownerId        String
+  verified       Boolean    @default(false)
+  trustScore     Int        @default(0)
+  status         String     @default("online")
+  category       String
+  tags           String
+  rating         Float      @default(0)
+  tasksCompleted Int        @default(0)
+  totalEarnings  Float      @default(0)
+  modelName      String     @default("deepseek-chat")
+  temperature    Float      @default(0.7)
+  maxTokens      Int        @default(4096)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  owner          User       @relation(fields: [ownerId], references: [id])
+  tasks          Task[]
+  bids           Bid[]
+  conversations  Conversation[]
+  agentSkills    AgentSkill[]
+  groupMembers   GroupMember[]
+  agentTools     AgentTool[]
+  agentKnowledge AgentKnowledge[]
+  taskExecutions TaskExecution[]
+
+  @@map("agents")
+}
+
+model AgentSkill {
+  id        String   @id @default(cuid())
+  agentId   String
+  skillName String
+  level     Int      @default(0)
+  usageCount Int     @default(0)
+
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("agent_skills")
+}
+
+model AgentTool {
+  id        String   @id @default(cuid())
+  agentId   String
+  toolName  String
+  enabled   Boolean  @default(true)
+
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("agent_tools")
+}
+
+model AgentGroup {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  owner       User         @relation(fields: [ownerId], references: [id])
+  members     GroupMember[]
+
+  @@map("agent_groups")
+}
+
+model GroupMember {
+  id        String   @id @default(cuid())
+  groupId   String
+  agentId   String
+  role      String   @default("member")
+
+  group     AgentGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  agent     Agent       @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, agentId])
+  @@map("group_members")
+}
+
+model Task {
+  id              String         @id @default(cuid())
+  title           String
+  description     String
+  budget          Float
+  status          String         @default("pending")
+  category        String
+  tags            String
+  creatorId       String
+  agentId         String?
+  deadline        DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  creator         User           @relation(fields: [creatorId], references: [id])
+  agent           Agent?         @relation(fields: [agentId], references: [id])
+  bids            Bid[]
+  transaction     Transaction?
+  taskExecutions  TaskExecution[]
+
+  @@map("tasks")
+}
+
+model Bid {
+  id          String   @id @default(cuid())
+  taskId      String
+  agentId     String
+  bidAmount   Float
+  proposal    String
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  agent       Agent    @relation(fields: [agentId], references: [id])
+
+  @@map("bids")
+}
+
+model Transaction {
+  id              String   @id @default(cuid())
+  taskId          String   @unique
+  amount          Float
+  status          String   @default("pending")
+  blockchainHash  String?
+  paidAt          DateTime?
+  createdAt       DateTime @default(now())
+
+  task            Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+model ModelConfig {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  type        String
+  apiKey      String
+  baseUrl     String
+  enabled     Boolean  @default(true)
+  modelName   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("model_configs")
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  agentId       String
+  userId        String
+  status        String    @default("active")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  agent         Agent     @relation(fields: [agentId], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
+  messages      Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id            String    @id @default(cuid())
+  conversationId String
+  role          String    @default("user")
+  content       String
+  toolCalls     String?
+  toolResults   String?
+  metadata      String?
+  inputTokens   Int?
+  outputTokens  Int?
+  creditsConsumed Int    @default(0)
+  createdAt     DateTime  @default(now())
+
+  conversation  Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model KnowledgeBase {
+  id          String    @id @default(cuid())
+  title       String
+  fileName    String
+  filePath    String
+  fileSize    Int
+  fileType    String
+  content     String
+  description String?
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id])
+  agentKb     AgentKnowledge[]
+
+  @@map("knowledge_bases")
+}
+
+model AgentKnowledge {
+  id            String    @id @default(cuid())
+  agentId       String
+  knowledgeId   String
+  createdAt     DateTime  @default(now())
+
+  agent         Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  knowledgeBase KnowledgeBase @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, knowledgeId])
+  @@map("agent_knowledge")
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String
+  type        String
+  title       String
+  message     String
+  payload     String
+  read        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}

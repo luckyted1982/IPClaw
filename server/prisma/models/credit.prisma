@@ -1,0 +1,122 @@
+// IPClaw 积分系统 Schema
+// 集成到主 schema 或单独使用
+
+model CreditAccount {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  totalCredits     Int       @default(0)
+  availableCredits Int       @default(0)
+  frozenCredits   Int       @default(0)
+  spentCredits    Int       @default(0)
+  lifetimeSpent   Int       @default(0)
+
+  monthlyQuota     Int       @default(0)
+  monthlyUsed     Int       @default(0)
+  quotaResetAt    DateTime  @default(now())
+
+  level            Int       @default(1)
+  totalPurchased  Int       @default(0)
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("credit_accounts")
+}
+
+model CreditTransaction {
+  id             String    @id @default(cuid())
+  userId         String
+  type           String    // reward, purchase, subscribe, consume, refund, expired, transfer_in, transfer_out
+  amount         Int
+  balanceBefore  Int
+  balanceAfter   Int
+  category       String    // chat, skill, expert, task, knowledge, document, subscription, recharge, signup_bonus, checkin_bonus, referral_bonus
+  description    String
+  referenceId    String?
+
+  serviceType    String?
+  modelName      String?
+  inputTokens    Int?
+  outputTokens   Int?
+
+  status         String    @default("completed")
+  expiresAt      DateTime?
+
+  createdAt      DateTime  @default(now())
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, type])
+  @@index([category, createdAt])
+  @@map("credit_transactions")
+}
+
+model ConsumptionRule {
+  id               String    @id @default(cuid())
+  name             String
+  serviceType      String    @unique
+  baseCredits      Int       @default(0)
+  perTokenCredits  Float?
+  perMinuteCredits Int?
+
+  dailyLimit       Int?
+  monthlyLimit     Int?
+  perRequestMin    Int?
+  perRequestMax    Int?
+
+  description      String?
+  example          String?
+
+  isActive         Boolean   @default(true)
+  priority         Int       @default(0)
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("consumption_rules")
+}
+
+model ServiceUsageLog {
+  id               String    @id @default(cuid())
+  userId           String
+  sessionId        String?
+
+  serviceType      String
+  action           String
+
+  creditsConsumed  Int       @default(0)
+
+  modelName        String?
+  inputTokens      Int?
+  outputTokens     Int?
+  duration         Int?
+
+  referenceId      String?
+  referenceType    String?
+
+  status           String    @default("success")
+
+  createdAt        DateTime  @default(now())
+
+  @@index([userId, serviceType, createdAt])
+  @@index([serviceType, createdAt])
+  @@map("service_usage_logs")
+}
+
+model CreditLevel {
+  id               String    @id @default(cuid())
+  level            Int       @unique
+  name             String
+  displayName      String
+  lifetimeSpent    Int
+  discountRate     Float     @default(0)
+  bonusRate        Float     @default(0)
+  priorityBoost    Int       @default(0)
+  exclusiveFeatures String?
+  isActive         Boolean   @default(true)
+
+  @@map("credit_levels")
+}
