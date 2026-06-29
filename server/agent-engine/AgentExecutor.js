@@ -145,6 +145,8 @@ export class AgentExecutor {
     const inputTokens = usage.prompt_tokens || 0;
     const outputTokens = usage.completion_tokens || 0;
 
+    console.log(`[Debug] Token usage - input: ${inputTokens}, output: ${outputTokens}, model: ${this.agent.modelName}`);
+
     if (userId && !skipCredits) {
       await this.saveAssistantMessage(userId, replyContent, inputTokens, outputTokens);
 
@@ -155,6 +157,8 @@ export class AgentExecutor {
           inputTokens,
           outputTokens
         );
+
+        console.log(`[Debug] Credits to deduct: ${creditsToDeduct}`);
 
         await creditService.consumeCredits(userId, creditsToDeduct, {
           category: 'chat',
