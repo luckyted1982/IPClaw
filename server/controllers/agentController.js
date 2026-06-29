@@ -71,7 +71,7 @@ export async function getAgentById(req, res) {
 
 export async function createAgent(req, res) {
   try {
-    const { name, avatar, title, description, systemPrompt, category, tags, skills } = req.body;
+    const { name, avatar, title, description, systemPrompt, category, tags, skills, tools, modelName, temperature, maxTokens } = req.body;
 
     if (!name || !systemPrompt || !category) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -80,12 +80,15 @@ export async function createAgent(req, res) {
     const agent = await prisma.agent.create({
       data: {
         name,
-        avatar,
+        avatar: avatar || name.charAt(0) || 'AI',
         title,
         description,
         systemPrompt,
         category,
         tags: tags || '',
+        modelName: modelName || 'deepseek-chat',
+        temperature: temperature !== undefined ? temperature : 0.7,
+        maxTokens: maxTokens || 4096,
         ownerId: req.user.id,
         ...(skills && skills.length > 0 && {
           agentSkills: {
@@ -95,9 +98,18 @@ export async function createAgent(req, res) {
             })),
           },
         }),
+        ...(tools && tools.length > 0 && {
+          agentTools: {
+            create: tools.map((tool) => ({
+              toolName: tool,
+              enabled: true,
+            })),
+          },
+        }),
       },
       include: {
         agentSkills: true,
+        agentTools: true,
       },
     });
 

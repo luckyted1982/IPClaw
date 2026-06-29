@@ -43,7 +43,9 @@ import { skillBuilderHandler } from './skill-builder-agent.js';
 
 import authRoutes from './routes/authRoutes.js';
 import agentRoutes from './routes/agentRoutes.js';
+import agentChatRoutes from './routes/agentChatRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
+import taskExecutionRoutes from './routes/taskExecutionRoutes.js';
 import conversationRoutes from './routes/conversationRoutes.js';
 import skillRoutes from './routes/skillRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
@@ -61,7 +63,7 @@ import { logger } from './middleware/logger.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -75,7 +77,7 @@ const limiter = rateLimit({
 
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://你的域名.com', 'https://www.你的域名.com'] 
+    ? ['http://43.163.125.222', 'https://43.163.125.222'] 
     : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3004', 'http://localhost:3006'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -102,7 +104,9 @@ console.log('PatSeek API Key:', PATSEEK_API_KEY.substring(0, 10) + '...');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/agents', agentRoutes);
+app.use('/api/agents', agentChatRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/task-executions', taskExecutionRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/transactions', transactionRoutes);

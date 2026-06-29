@@ -610,6 +610,16 @@ export default function AgentWorld() {
   const [myAgents, setMyAgents] = useState<any[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [createStep, setCreateStep] = useState(1);
+  const [selectedAgent, setSelectedAgent] = useState<any>(null);
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{ role: string; content: string }[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatting, setIsChatting] = useState(false);
+  const [myTasks, setMyTasks] = useState<any[]>([]);
+  const [myExecutions, setMyExecutions] = useState<any[]>([]);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskForm, setTaskForm] = useState({ title: '', description: '', budget: 10, category: 'general' });
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
 
   const toggleLike = (id: number) => {
     setLikedPosts((prev) => {
@@ -682,6 +692,47 @@ export default function AgentWorld() {
     }
   };
 
+  const openAgentChat = (agent: any) => {
+    setSelectedAgent(agent);
+    setChatMessages([]);
+    setShowChatModal(true);
+  };
+
+  const handleSendMessage = async () => {
+    if (!chatInput.trim() || !selectedAgent || !token) return;
+
+    const userMessage = chatInput.trim();
+    setChatMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setChatInput('');
+    setIsChatting(true);
+
+    try {
+      const response = await fetch(`/api/agents/${selectedAgent.id}/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: userMessage }],
+          stream: false,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setChatMessages((prev) => [...prev, { role: "assistant", content: data.content }]);
+      } else {
+        const errorData = await response.json();
+        setChatMessages((prev) => [...prev, { role: "assistant", content: `请求失败: ${errorData.error || errorData.details}` }]);
+      }
+    } catch (error) {
+      setChatMessages((prev) => [...prev, { role: "assistant", content: `请求失败: ${error}` }]);
+    } finally {
+      setIsChatting(false);
+    }
+  };
+
   const addSkill = (skillName: string) => {
     if (agentForm.skills.find((s) => s.name === skillName)) return;
     setAgentForm((prev) => ({
@@ -712,7 +763,182 @@ export default function AgentWorld() {
     { value: "trading", label: "自由交易" },
     { value: "community", label: "社群中心" },
     { value: "myagent", label: "我的代理" },
+    { value: "mytasks", label: "我的任务" },
   ];
+
+  const fetchMyTasks = async () => {
+    if (!token) return;
+    try {
+      const response = await fetch("/api/tasks/my", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setMyTasks(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch my tasks:", error);
+    }
+  };
+
+  const fetchMyExecutions = async () => {
+    if (!token) return;
+    try {
+      const response = await fetch("/api/tasks/my", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const executions = data.filter((t: any) => t.agentId);
+        setMyExecutions(executions);
+      }
+    } catch (error) {
+      console.error("Failed to fetch executions:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "mytasks" && token) {
+      fetchMyTasks();
+      fetchMyExecutions();
+    }
+  }, [activeTab, token]);
+
+  const handleCreateTask = async () => {
+    if (!token) return;
+    setIsCreatingTask(true);
+    try {
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(taskForm),
+      });
+
+      if (response.ok) {
+        const newTask = await response.json();
+        setMyTasks((prev) => [newTask, ...prev]);
+        setShowTaskModal(false);
+        setTaskForm({ title: '', description: '', budget: 10, category: 'general' });
+      } else {
+        const data = await response.json();
+        alert(data.error || "创建任务失败");
+      }
+    } catch (error) {
+      console.error("Create task error:", error);
+      alert("创建任务失败，请重试");
+    } finally {
+      setIsCreatingTask(false);
+    }
+  };
+
+  const handleStartExecution = async (executionId: string) => {
+    if (!token) return;
+    try {
+      const response = await fetch(`/api/task-executions/${executionId}/start`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        fetchMyExecutions();
+      } else {
+        const data = await response.json();
+        alert(data.error || "操作失败");
+      }
+    } catch (error) {
+      console.error("Start execution error:", error);
+    }
+  };
+
+  const handleSubmitExecution = async (executionId: string) => {
+    if (!token) return;
+    try {
+      const response = await fetch(`/api/task-executions/${executionId}/submit`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ result: "任务已完成" }),
+      });
+      if (response.ok) {
+        fetchMyExecutions();
+      } else {
+        const data = await response.json();
+        alert(data.error || "操作失败");
+      }
+    } catch (error) {
+      console.error("Submit execution error:", error);
+    }
+  };
+
+  const handleCompleteExecution = async (executionId: string, approved: boolean) => {
+    if (!token) return;
+    try {
+      const response = await fetch(`/api/task-executions/${executionId}/complete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ approved }),
+      });
+      if (response.ok) {
+        fetchMyExecutions();
+      } else {
+        const data = await response.json();
+        alert(data.error || "操作失败");
+      }
+    } catch (error) {
+      console.error("Complete execution error:", error);
+    }
+  };
+
+  const handleAssignTask = async (taskId: string, agentId: string) => {
+    if (!token) return;
+    try {
+      const response = await fetch("/api/task-executions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ taskId, agentId }),
+      });
+      if (response.ok) {
+        fetchMyTasks();
+        fetchMyExecutions();
+      } else {
+        const data = await response.json();
+        alert(data.error || "分配失败");
+      }
+    } catch (error) {
+      console.error("Assign task error:", error);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending": return "bg-gray-500/10 text-gray-400";
+      case "assigned": return "bg-blue-500/10 text-blue-400";
+      case "in_progress": return "bg-yellow-500/10 text-yellow-400";
+      case "submitted": return "bg-purple-500/10 text-purple-400";
+      case "completed": return "bg-green-500/10 text-green-400";
+      case "rejected": return "bg-red-500/10 text-red-400";
+      default: return "bg-gray-500/10 text-gray-400";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "pending": return "待分配";
+      case "assigned": return "已分配";
+      case "in_progress": return "执行中";
+      case "submitted": return "已提交";
+      case "completed": return "已完成";
+      case "rejected": return "已拒绝";
+      default: return status;
+    }
+  };
 
   return (
     <Layout>
@@ -1540,15 +1766,24 @@ export default function AgentWorld() {
                                   {agent.tasksCompleted || 0}
                                 </span>
                               </div>
-                              <span
-                                className={`text-[10px] px-2 py-0.5 rounded-full ${
-                                  agent.status === "online"
-                                    ? "bg-green-500/10 text-green-400"
-                                    : "bg-gray-500/10 text-gray-400"
-                                }`}
-                              >
-                                {agent.status === "online" ? "在线" : "离线"}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => openAgentChat(agent)}
+                                  className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-[var(--gold-400)] border border-[var(--gold-400)] hover:bg-[var(--gold-400)] hover:text-[var(--navy-900)] transition-colors"
+                                >
+                                  <MessageCircle size={10} />
+                                  对话
+                                </button>
+                                <span
+                                  className={`text-[10px] px-2 py-0.5 rounded-full ${
+                                    agent.status === "online"
+                                      ? "bg-green-500/10 text-green-400"
+                                      : "bg-gray-500/10 text-gray-400"
+                                  }`}
+                                >
+                                  {agent.status === "online" ? "在线" : "离线"}
+                                </span>
+                              </div>
                             </div>
                           </motion.div>
                         ))}
@@ -1685,6 +1920,169 @@ export default function AgentWorld() {
                           </button>
                         </motion.div>
                       ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </TabsContent>
+
+          {/* ========== TAB 6: 我的任务 ========== */}
+          <TabsContent value="mytasks" className="mt-0">
+            <AnimatePresence mode="wait">
+              {activeTab === "mytasks" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-6"
+                >
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-bold text-[var(--text-primary)]">我的任务</h2>
+                    <button
+                      onClick={() => setShowTaskModal(true)}
+                      className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all hover:scale-105"
+                      style={{
+                        background: "linear-gradient(135deg, #FACC15, #EAB308)",
+                        color: "var(--navy-900)",
+                      }}
+                    >
+                      <Plus size={16} />
+                      创建任务
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div
+                      className="rounded-[var(--radius-lg)] border border-[var(--navy-700)] p-5"
+                      style={{ background: "var(--gradient-navy-card)" }}
+                    >
+                      <h3 className="text-sm font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                        <Target size={16} className="text-[var(--gold-400)]" />
+                        我发布的任务
+                      </h3>
+                      {myTasks.length === 0 ? (
+                        <div className="text-center py-8">
+                          <FileText size={40} className="mx-auto mb-3 text-[var(--navy-600)]" />
+                          <p className="text-sm text-[var(--text-muted)]">暂无任务</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {myTasks.map((task) => (
+                            <div
+                              key={task.id}
+                              className="rounded-lg border border-[var(--navy-700)] p-4 bg-[rgba(15,23,42,0.5)]"
+                            >
+                              <div className="flex items-start justify-between mb-2">
+                                <h4 className="text-sm font-medium text-[var(--text-primary)]">{task.title}</h4>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(task.status)}`}>
+                                  {getStatusText(task.status)}
+                                </span>
+                              </div>
+                              <p className="text-xs text-[var(--text-muted)] mb-3 line-clamp-2">{task.description}</p>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
+                                  <DollarSign size={12} className="text-[var(--gold-400)]" />
+                                  <span>¥{task.budget}</span>
+                                </div>
+                                {task.status === "pending" && myAgents.length > 0 && (
+                                  <select
+                                    className="text-xs rounded border border-[var(--navy-600)] px-2 py-1 bg-[rgba(30,41,59,0.8)] text-[var(--text-primary)] outline-none focus:border-[var(--gold-400)]"
+                                    onChange={(e) => handleAssignTask(task.id, e.target.value)}
+                                  >
+                                    <option value="">分配给智能体</option>
+                                    {myAgents.map((agent) => (
+                                      <option key={agent.id} value={agent.id}>{agent.name}</option>
+                                    ))}
+                                  </select>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div
+                      className="rounded-[var(--radius-lg)] border border-[var(--navy-700)] p-5"
+                      style={{ background: "var(--gradient-navy-card)" }}
+                    >
+                      <h3 className="text-sm font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                        <Activity size={16} className="text-[var(--gold-400)]" />
+                        任务执行中
+                      </h3>
+                      {myExecutions.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Clock size={40} className="mx-auto mb-3 text-[var(--navy-600)]" />
+                          <p className="text-sm text-[var(--text-muted)]">暂无执行中的任务</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {myExecutions.map((task) => (
+                            <div
+                              key={task.id}
+                              className="rounded-lg border border-[var(--navy-700)] p-4 bg-[rgba(15,23,42,0.5)]"
+                            >
+                              <div className="flex items-start justify-between mb-2">
+                                <h4 className="text-sm font-medium text-[var(--text-primary)]">{task.title}</h4>
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(task.status)}`}>
+                                  {getStatusText(task.status)}
+                                </span>
+                              </div>
+                              <div className="mb-3">
+                                <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-1">
+                                  <span>进度</span>
+                                  <span>{task.execution?.progress || 0}%</span>
+                                </div>
+                                <div className="h-1.5 rounded-full bg-[var(--navy-700)] overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full transition-all duration-300"
+                                    style={{
+                                      width: `${task.execution?.progress || 0}%`,
+                                      background: "linear-gradient(90deg, #FACC15, #EAB308)",
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {task.status === "assigned" && (
+                                  <button
+                                    onClick={() => handleStartExecution(task.execution?.id)}
+                                    className="px-3 py-1 rounded text-xs font-medium text-[var(--gold-400)] border border-[var(--gold-400)] hover:bg-[var(--gold-400)] hover:text-[var(--navy-900)] transition-colors"
+                                  >
+                                    开始执行
+                                  </button>
+                                )}
+                                {task.status === "in_progress" && (
+                                  <button
+                                    onClick={() => handleSubmitExecution(task.execution?.id)}
+                                    className="px-3 py-1 rounded text-xs font-medium text-[var(--blue-400)] border border-[var(--blue-400)] hover:bg-[var(--blue-400)] hover:text-white transition-colors"
+                                  >
+                                    提交结果
+                                  </button>
+                                )}
+                                {task.status === "submitted" && (
+                                  <>
+                                    <button
+                                      onClick={() => handleCompleteExecution(task.execution?.id, true)}
+                                      className="px-3 py-1 rounded text-xs font-medium text-[var(--green-400)] border border-[var(--green-400)] hover:bg-[var(--green-400)] hover:text-white transition-colors"
+                                    >
+                                      验收通过
+                                    </button>
+                                    <button
+                                      onClick={() => handleCompleteExecution(task.execution?.id, false)}
+                                      className="px-3 py-1 rounded text-xs font-medium text-[var(--red-400)] border border-[var(--red-400)] hover:bg-[var(--red-400)] hover:text-white transition-colors"
+                                    >
+                                      拒绝
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -2147,6 +2545,250 @@ export default function AgentWorld() {
                     </button>
                   )}
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Agent Chat Modal */}
+      <AnimatePresence>
+        {showChatModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(4px)" }}
+            onClick={() => setShowChatModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-2xl max-h-[80vh] overflow-hidden rounded-2xl border border-[var(--navy-700)]"
+              style={{ background: "var(--gradient-navy-card)" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--navy-700)]">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
+                    style={{
+                      background: "linear-gradient(135deg, #FACC15, #EAB308)",
+                      color: "var(--navy-900)",
+                    }}
+                  >
+                    {selectedAgent?.avatar || selectedAgent?.name?.charAt(0) || "AI"}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[var(--text-primary)]">{selectedAgent?.name}</h3>
+                    <p className="text-xs text-[var(--text-muted)]">{selectedAgent?.title || selectedAgent?.category}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowChatModal(false)}
+                  className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--navy-700)] transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="h-[50vh] overflow-y-auto p-4 space-y-4">
+                {chatMessages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center">
+                    <div
+                      className="flex h-16 w-16 items-center justify-center rounded-full mb-4"
+                      style={{ background: "rgba(250, 204, 21, 0.1)" }}
+                    >
+                      <MessageCircle size={32} className="text-[var(--gold-400)]" />
+                    </div>
+                    <p className="text-sm text-[var(--text-primary)] mb-2">开始与 {selectedAgent?.name} 对话</p>
+                    <p className="text-xs text-[var(--text-muted)]">发送消息，智能体会根据其配置的能力为您服务</p>
+                  </div>
+                ) : (
+                  chatMessages.map((msg, i) => (
+                    <div key={i} className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
+                      <div
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                        style={{
+                          background: msg.role === "user"
+                            ? "rgba(59, 130, 246, 0.2)"
+                            : "linear-gradient(135deg, #FACC15, #EAB308)",
+                          color: msg.role === "user" ? "var(--blue-400)" : "var(--navy-900)",
+                        }}
+                      >
+                        {msg.role === "user" ? "您" : selectedAgent?.avatar?.charAt(0) || "AI"}
+                      </div>
+                      <div className={`max-w-[70%] rounded-xl p-3 ${msg.role === "user" ? "rounded-br-none" : "rounded-bl-none"}`}
+                        style={{
+                          background: msg.role === "user" ? "rgba(59, 130, 246, 0.15)" : "rgba(30, 41, 59, 0.8)",
+                          border: `1px solid ${msg.role === "user" ? "rgba(59, 130, 246, 0.3)" : "var(--navy-700)"}`,
+                        }}
+                      >
+                        <p className="text-sm text-[var(--text-primary)] whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="px-6 py-4 border-t border-[var(--navy-700)]">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                    placeholder="输入消息..."
+                    disabled={isChatting}
+                    className="flex-1 rounded-lg border border-[var(--navy-700)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)] transition-colors disabled:opacity-50"
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={isChatting || !chatInput.trim()}
+                    className="flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    style={{
+                      background: "linear-gradient(135deg, #FACC15, #EAB308)",
+                      color: "var(--navy-900)",
+                    }}
+                  >
+                    {isChatting ? (
+                      <div className="flex h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                      <Send size={16} />
+                    )}
+                    {isChatting ? "发送中" : "发送"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Create Task Modal */}
+      <AnimatePresence>
+        {showTaskModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(4px)" }}
+            onClick={() => setShowTaskModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--navy-700)]"
+              style={{ background: "var(--gradient-navy-card)" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--navy-700)]">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
+                    style={{
+                      background: "linear-gradient(135deg, #FACC15, #EAB308)",
+                      color: "var(--navy-900)",
+                    }}
+                  >
+                    <Target size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[var(--text-primary)]">创建任务</h3>
+                    <p className="text-xs text-[var(--text-muted)]">发布一个新任务</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowTaskModal(false)}
+                  className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--navy-700)] transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">任务标题</label>
+                  <input
+                    type="text"
+                    value={taskForm.title}
+                    onChange={(e) => setTaskForm((prev) => ({ ...prev, title: e.target.value }))}
+                    placeholder="输入任务标题..."
+                    className="w-full rounded-lg border border-[var(--navy-700)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)] transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">任务描述</label>
+                  <textarea
+                    value={taskForm.description}
+                    onChange={(e) => setTaskForm((prev) => ({ ...prev, description: e.target.value }))}
+                    placeholder="描述任务详情..."
+                    rows={4}
+                    className="w-full rounded-lg border border-[var(--navy-700)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)] transition-colors resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">预算</label>
+                    <input
+                      type="number"
+                      value={taskForm.budget}
+                      onChange={(e) => setTaskForm((prev) => ({ ...prev, budget: parseFloat(e.target.value) || 0 }))}
+                      min="0"
+                      placeholder="0"
+                      className="w-full rounded-lg border border-[var(--navy-700)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)] transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">分类</label>
+                    <select
+                      value={taskForm.category}
+                      onChange={(e) => setTaskForm((prev) => ({ ...prev, category: e.target.value }))}
+                      className="w-full rounded-lg border border-[var(--navy-700)] px-4 py-2.5 text-sm text-[var(--text-primary)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)] transition-colors"
+                    >
+                      <option value="general">通用</option>
+                      <option value="patent">专利</option>
+                      <option value="trademark">商标</option>
+                      <option value="copyright">版权</option>
+                      <option value="dataip">数据知识产权</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-6 py-4 border-t border-[var(--navy-700)] flex justify-end gap-3">
+                <button
+                  onClick={() => setShowTaskModal(false)}
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] border border-[var(--navy-700)] hover:border-[var(--navy-500)] transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleCreateTask}
+                  disabled={!taskForm.title || !taskForm.description || isCreatingTask}
+                  className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  style={{
+                    background: "linear-gradient(135deg, #FACC15, #EAB308)",
+                    color: "var(--navy-900)",
+                  }}
+                >
+                  {isCreatingTask ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      创建中
+                    </div>
+                  ) : (
+                    "创建任务"
+                  )}
+                </button>
               </div>
             </motion.div>
           </motion.div>

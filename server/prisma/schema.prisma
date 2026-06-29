@@ -58,6 +58,9 @@ model Agent {
   rating         Float      @default(0)
   tasksCompleted Int        @default(0)
   totalEarnings  Float      @default(0)
+  modelName      String     @default("deepseek-chat")
+  temperature    Float      @default(0.7)
+  maxTokens      Int        @default(4096)
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
   
@@ -67,6 +70,9 @@ model Agent {
   conversations  Conversation[]
   agentSkills    AgentSkill[]
   groupMembers   GroupMember[]
+  agentTools     AgentTool[]
+  agentKnowledge AgentKnowledge[]
+  taskExecutions TaskExecution[]
   
   @@map("agents")
 }
@@ -81,6 +87,17 @@ model AgentSkill {
   agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
   
   @@map("agent_skills")
+}
+
+model AgentTool {
+  id        String   @id @default(cuid())
+  agentId   String
+  toolName  String
+  enabled   Boolean  @default(true)
+  
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  @@map("agent_tools")
 }
 
 model AgentGroup {
@@ -128,7 +145,8 @@ model Task {
   agent           Agent?         @relation(fields: [agentId], references: [id])
   bids            Bid[]
   transaction     Transaction?
-  
+  taskExecutions  TaskExecution[]
+
   @@map("tasks")
 }
 
@@ -179,15 +197,30 @@ model Conversation {
   id            String    @id @default(cuid())
   agentId       String
   userId        String
-  messages      String
   status        String    @default("active")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
   agent         Agent     @relation(fields: [agentId], references: [id])
   user          User      @relation(fields: [userId], references: [id])
+  messages      Message[]
   
   @@map("conversations")
+}
+
+model Message {
+  id            String    @id @default(cuid())
+  conversationId String
+  role          String    @default("user")
+  content       String
+  toolCalls     String?
+  toolResults   String?
+  metadata      String?
+  createdAt     DateTime  @default(now())
+  
+  conversation  Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  @@map("messages")
 }
 
 model KnowledgeBase {
@@ -204,8 +237,22 @@ model KnowledgeBase {
   updatedAt   DateTime  @updatedAt
   
   user        User      @relation(fields: [userId], references: [id])
+  agentKb     AgentKnowledge[]
   
   @@map("knowledge_bases")
+}
+
+model AgentKnowledge {
+  id            String    @id @default(cuid())
+  agentId       String
+  knowledgeId   String
+  createdAt     DateTime  @default(now())
+  
+  agent         Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  knowledgeBase KnowledgeBase @relation(fields: [knowledgeId], references: [id], onDelete: Cascade)
+  
+  @@unique([agentId, knowledgeId])
+  @@map("agent_knowledge")
 }
 
 model Notification {
@@ -265,6 +312,28 @@ model UserSubscription {
   autoRenew     Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   @@map("user_subscriptions")
+}
+
+model TaskExecution {
+  id            String    @id @default(cuid())
+  taskId        String
+  agentId       String
+  status        String    @default("assigned")
+  step          String    @default("accepted")
+  progress      Int       @default(0)
+  input         String?
+  output        String?
+  result        String?
+  error         String?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  task          Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  agent         Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("task_executions")
 }
