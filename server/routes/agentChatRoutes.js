@@ -1,7 +1,7 @@
 import express from 'express';
 import prisma from '../lib/prisma.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableRow, TableCell, WidthType } from 'docx';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 import { executeAgentChat } from '../agent-engine/AgentExecutor.js';
 
 const router = express.Router();
@@ -34,133 +34,6 @@ router.post('/:id/chat', authenticateToken, async (req, res) => {
   }
 });
 
-router.get('/:id/export/conversation/:conversationId/docx', authenticateToken, async (req, res) => {
-  const { id: agentId, conversationId } = req.params;
-
-  try {
-    const conversation = await prisma.conversation.findUnique({
-      where: { id: conversationId },
-      include: {
-        agent: true,
-        user: true,
-        messages: {
-          orderBy: { createdAt: 'asc' },
-        },
-      },
-    });
-
-    if (!conversation) {
-      return res.status(404).json({ error: 'Conversation not found' });
-    }
-
-    if (conversation.userId !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
-    const doc = new Document({
-      title: `对话记录 - ${conversation.agent.name}`,
-      creator: conversation.user.name,
-      description: `与 ${conversation.agent.name} 的对话记录`,
-    });
-
-    doc.addSection({
-      properties: {},
-      children: [
-        new Paragraph({
-          text: `对话记录 - ${conversation.agent.name}`,
-          heading: HeadingLevel.HEADING_1,
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 200 },
-        }),
-
-        new Paragraph({
-          text: `智能体：${conversation.agent.name}`,
-          spacing: { after: 100 },
-          children: [
-            new TextRun({
-              text: `智能体：${conversation.agent.name}`,
-              bold: true,
-            }),
-            new TextRun({
-              text: ` (${conversation.agent.title || conversation.agent.category})`,
-            }),
-          ],
-        }),
-
-        new Paragraph({
-          text: `用户：${conversation.user.name}`,
-          spacing: { after: 200 },
-          children: [
-            new TextRun({
-              text: `用户：${conversation.user.name}`,
-              bold: true,
-            }),
-          ],
-        }),
-
-        new Paragraph({
-          text: `创建时间：${new Date(conversation.createdAt).toLocaleString('zh-CN')}`,
-          spacing: { after: 400 },
-          children: [
-            new TextRun({
-              text: `创建时间：${new Date(conversation.createdAt).toLocaleString('zh-CN')}`,
-              bold: true,
-            }),
-          ],
-        }),
-
-        new Paragraph({
-          text: '对话内容',
-          heading: HeadingLevel.HEADING_2,
-          spacing: { after: 200 },
-        }),
-      ],
-    });
-
-    for (const message of conversation.messages) {
-      const roleText = message.role === 'user' ? '用户' : '智能体';
-      const bgColor = message.role === 'user' ? 'FFFFFF' : 'F5F5F5';
-
-      doc.addSection({
-        properties: {},
-        children: [
-          new Paragraph({
-            text: `${roleText}`,
-            bold: true,
-            spacing: { after: 100 },
-            children: [
-              new TextRun({
-                text: `${roleText}`,
-                bold: true,
-                color: message.role === 'user' ? '0000FF' : 'FF6600',
-              }),
-              new TextRun({
-                text: ` - ${new Date(message.createdAt).toLocaleTimeString('zh-CN')}`,
-              }),
-            ],
-          }),
-
-          new Paragraph({
-            text: message.content,
-            spacing: { after: 300 },
-            indent: { left: 400 },
-          }),
-        ],
-      });
-    }
-
-    const buffer = await Packer.toBuffer(doc);
-
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    res.setHeader('Content-Disposition', `attachment; filename="对话记录_${conversation.agent.name}_${new Date().toISOString().split('T')[0]}.docx"`);
-    res.setHeader('Content-Length', buffer.length);
-    res.send(buffer);
-  } catch (error) {
-    console.error('Export conversation error:', error);
-    res.status(500).json({ error: 'Export failed', details: error.message });
-  }
-});
-
 router.get('/:id/export/all-docx', authenticateToken, async (req, res) => {
   const { id: agentId } = req.params;
 
@@ -181,119 +54,103 @@ router.get('/:id/export/all-docx', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'No conversations found' });
     }
 
-    const doc = new Document({
-      title: `全部对话记录 - ${conversations[0].agent.name}`,
-      creator: conversations[0].user.name,
-      description: `与 ${conversations[0].agent.name} 的全部对话记录`,
-    });
+    const allChildren = [];
 
-    doc.addSection({
-      properties: {},
-      children: [
-        new Paragraph({
-          text: `全部对话记录 - ${conversations[0].agent.name}`,
-          heading: HeadingLevel.HEADING_1,
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 200 },
-        }),
-
-        new Paragraph({
-          text: `智能体：${conversations[0].agent.name}`,
-          spacing: { after: 100 },
-          children: [
-            new TextRun({
-              text: `智能体：${conversations[0].agent.name}`,
-              bold: true,
-            }),
-            new TextRun({
-              text: ` (${conversations[0].agent.title || conversations[0].agent.category})`,
-            }),
-          ],
-        }),
-
-        new Paragraph({
-          text: `用户：${conversations[0].user.name}`,
-          spacing: { after: 200 },
-          children: [
-            new TextRun({
-              text: `用户：${conversations[0].user.name}`,
-              bold: true,
-            }),
-          ],
-        }),
-
-        new Paragraph({
-          text: `导出时间：${new Date().toLocaleString('zh-CN')}`,
-          spacing: { after: 400 },
-          children: [
-            new TextRun({
-              text: `导出时间：${new Date().toLocaleString('zh-CN')}`,
-              bold: true,
-            }),
-          ],
-        }),
-
-        new Paragraph({
-          text: `共 ${conversations.length} 条对话`,
-          spacing: { after: 400 },
-        }),
-      ],
-    });
+    allChildren.push(
+      new Paragraph({
+        text: `全部对话记录 - ${conversations[0].agent.name}`,
+        heading: HeadingLevel.HEADING_1,
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 200 },
+      }),
+      new Paragraph({
+        spacing: { after: 100 },
+        children: [
+          new TextRun({
+            text: `智能体：${conversations[0].agent.name}`,
+            bold: true,
+          }),
+          new TextRun({
+            text: ` (${conversations[0].agent.title || conversations[0].category})`,
+          }),
+        ],
+      }),
+      new Paragraph({
+        spacing: { after: 200 },
+        children: [
+          new TextRun({
+            text: `用户：${conversations[0].user.name}`,
+            bold: true,
+          }),
+        ],
+      }),
+      new Paragraph({
+        spacing: { after: 400 },
+        children: [
+          new TextRun({
+            text: `导出时间：${new Date().toLocaleString('zh-CN')}`,
+            bold: true,
+          }),
+        ],
+      }),
+      new Paragraph({
+        text: `共 ${conversations.length} 条对话`,
+        spacing: { after: 400 },
+      })
+    );
 
     let conversationIndex = 1;
     for (const conversation of conversations) {
-      doc.addSection({
-        properties: {},
-        children: [
-          new Paragraph({
-            text: `对话 ${conversationIndex++}`,
-            heading: HeadingLevel.HEADING_2,
-            spacing: { after: 200 },
-          }),
-
-          new Paragraph({
-            text: `创建时间：${new Date(conversation.createdAt).toLocaleString('zh-CN')}`,
-            spacing: { after: 300 },
-          }),
-        ],
-      });
+      allChildren.push(
+        new Paragraph({
+          text: `对话 ${conversationIndex++}`,
+          heading: HeadingLevel.HEADING_2,
+          spacing: { after: 200 },
+        }),
+        new Paragraph({
+          text: `创建时间：${new Date(conversation.createdAt).toLocaleString('zh-CN')}`,
+          spacing: { after: 300 },
+        })
+      );
 
       for (const message of conversation.messages) {
         const roleText = message.role === 'user' ? '用户' : '智能体';
+        const color = message.role === 'user' ? '0000FF' : 'FF6600';
 
-        doc.addSection({
-          properties: {},
-          children: [
-            new Paragraph({
-              text: `${roleText}`,
-              bold: true,
-              spacing: { after: 100 },
-              children: [
-                new TextRun({
-                  text: `${roleText}`,
-                  bold: true,
-                  color: message.role === 'user' ? '0000FF' : 'FF6600',
-                }),
-                new TextRun({
-                  text: ` - ${new Date(message.createdAt).toLocaleTimeString('zh-CN')}`,
-                }),
-              ],
-            }),
-
-            new Paragraph({
-              text: message.content,
-              spacing: { after: 200 },
-              indent: { left: 400 },
-            }),
-          ],
-        });
+        allChildren.push(
+          new Paragraph({
+            spacing: { after: 100 },
+            children: [
+              new TextRun({
+                text: `${roleText}`,
+                bold: true,
+                color: color,
+              }),
+              new TextRun({
+                text: ` - ${new Date(message.createdAt).toLocaleTimeString('zh-CN')}`,
+              }),
+            ],
+          }),
+          new Paragraph({
+            text: message.content,
+            spacing: { after: 200 },
+            indent: { left: 400 },
+          })
+        );
       }
     }
+
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: allChildren,
+      }],
+    });
 
     const buffer = await Packer.toBuffer(doc);
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    res.setHeader('Content-Disposition', `attachment; filename="全部对话记录_${conversations[0].agent.name}_${new Date().toISOString().split('T')[0]}.docx"`);
+    res.setHeader('Content-Disposition', `attachment; filename="对话记录_${conversations[0].agent.name}_${new Date().toISOString().split('T')[0]}.docx"`);
     res.setHeader('Content-Length', buffer.length);
     res.send(buffer);
   } catch (error) {
