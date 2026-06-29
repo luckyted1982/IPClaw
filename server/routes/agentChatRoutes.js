@@ -150,7 +150,8 @@ router.get('/:id/export/all-docx', authenticateToken, async (req, res) => {
     const buffer = await Packer.toBuffer(doc);
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    res.setHeader('Content-Disposition', `attachment; filename="对话记录_${conversations[0].agent.name}_${new Date().toISOString().split('T')[0]}.docx"`);
+    const encodedFilename = encodeURIComponent(`对话记录_${conversations[0].agent.name}_${new Date().toISOString().split('T')[0]}.docx`);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodedFilename}"`);
     res.setHeader('Content-Length', buffer.length);
     res.send(buffer);
   } catch (error) {
