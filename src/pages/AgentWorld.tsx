@@ -57,6 +57,7 @@ import {
   Palette,
   Wrench,
   Brain,
+  Download,
   Save,
   Eye,
   Trash2,
@@ -730,6 +731,36 @@ export default function AgentWorld() {
       setChatMessages((prev) => [...prev, { role: "assistant", content: `请求失败: ${error}` }]);
     } finally {
       setIsChatting(false);
+    }
+  };
+
+  const handleExportConversation = async () => {
+    if (!selectedAgent || !token) return;
+
+    try {
+      const response = await fetch(`/api/agents/${selectedAgent.id}/export/all-docx`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `对话记录_${selectedAgent.name}_${new Date().toISOString().split('T')[0]}.docx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } else {
+        const errorData = await response.json();
+        alert(`导出失败: ${errorData.error || errorData.details}`);
+      }
+    } catch (error) {
+      alert(`导出失败: ${error}`);
     }
   };
 
@@ -2587,12 +2618,21 @@ export default function AgentWorld() {
                     <p className="text-xs text-[var(--text-muted)]">{selectedAgent?.title || selectedAgent?.category}</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowChatModal(false)}
-                  className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--navy-700)] transition-colors"
-                >
-                  <X size={20} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleExportConversation}
+                    className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--navy-700)] transition-colors"
+                    title="导出对话记录"
+                  >
+                    <Download size={20} />
+                  </button>
+                  <button
+                    onClick={() => setShowChatModal(false)}
+                    className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--navy-700)] transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
 
               <div className="h-[50vh] overflow-y-auto p-4 space-y-4">
