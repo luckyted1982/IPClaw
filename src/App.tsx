@@ -35,6 +35,7 @@ import TradeSecretProtection from './pages/TradeSecretProtection'
 import TradeSecretInvestigation from './pages/TradeSecretInvestigation'
 import TradeSecretLitigation from './pages/TradeSecretLitigation'
 import AgentWorld from './pages/AgentWorld'
+import Community from './pages/Community'
 import ExpertPlatform from './pages/ExpertPlatform'
 import FinanceInvestment from './pages/FinanceInvestment'
 import IPValuation from './pages/IPValuation'
@@ -84,6 +85,7 @@ export default function App() {
       <Route path="/trade-secret/investigation" element={<TradeSecretInvestigation />} />
       <Route path="/trade-secret/litigation" element={<TradeSecretLitigation />} />
       <Route path="/agent-world" element={<AgentWorld />} />
+      <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
       <Route path="/experts" element={<ExpertPlatform />} />
       <Route path="/finance" element={<FinanceInvestment />} />
       <Route path="/finance/valuation" element={<IPValuation />} />

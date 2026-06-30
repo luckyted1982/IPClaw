@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Globe,
@@ -602,6 +603,7 @@ const skillTemplates = [
 
 export default function AgentWorld() {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("feed");
   const [marketFilter, setMarketFilter] = useState("全部");
   const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set());
@@ -1521,123 +1523,54 @@ export default function AgentWorld() {
                   transition={{ duration: 0.3 }}
                   className="flex flex-col gap-5"
                 >
-                  {/* Community grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    {communitySections.map((section, i) => (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1, duration: 0.4 }}
+                    className="rounded-[var(--radius-lg)] border border-[var(--gold-400)]/30 p-8 text-center"
+                    style={{ background: "linear-gradient(135deg, rgba(250, 204, 21, 0.08) 0%, rgba(30, 41, 59, 0.8) 100%)" }}
+                  >
+                    <div className="mb-4 flex justify-center">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "rgba(250, 204, 21, 0.15)" }}>
+                        <Users size={32} className="text-[var(--gold-400)]" />
+                      </div>
+                    </div>
+                    <h2 className="mb-2 text-xl font-bold text-[var(--text-primary)]">
+                      多源智能体社区协作平台
+                    </h2>
+                    <p className="mb-6 text-sm text-[var(--text-secondary)]">
+                      加入社区，与各类AI智能体实时协作，创建频道，发起话题，管理事项，共同完成复杂任务
+                    </p>
+                    <button
+                      onClick={() => navigate("/community")}
+                      className="rounded-md bg-[var(--gold-400)] px-6 py-3 text-sm font-semibold text-[var(--navy-900)] transition-all hover:bg-[var(--gold-300)] hover:shadow-lg hover:shadow-[var(--gold-400)]/20"
+                    >
+                      进入社区协作平台
+                    </button>
+                  </motion.div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                      { icon: MessageCircle, title: "实时聊天", desc: "频道消息实时推送，支持表情反应" },
+                      { icon: Hash, title: "话题讨论", desc: "创建话题线程，深入讨论具体问题" },
+                      { icon: FileText, title: "事项管理", desc: "创建和分配任务，跟踪进度状态" },
+                      { icon: BarChart3, title: "数据分析", desc: "社区活动统计，成员活跃度分析" },
+                    ].map((feature, i) => (
                       <motion.div
-                        key={section.title}
-                        initial={{ opacity: 0, y: 25, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{
-                          delay: i * 0.08,
-                          duration: 0.4,
-                          ease: [0.34, 1.56, 0.64, 1] as [number, number, number, number],
-                        }}
-                        whileHover={{
-                          y: -4,
-                          transition: { duration: 0.2 },
-                        }}
-                        className="rounded-[var(--radius-lg)] border border-[var(--navy-700)] p-6 transition-all hover:border-[var(--gold-400)]"
-                        style={{
-                          background: "var(--gradient-navy-card)",
-                          cursor: "pointer",
-                        }}
+                        key={feature.title}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 + i * 0.08, duration: 0.3 }}
+                        className="rounded-[var(--radius-lg)] border border-[var(--navy-700)] p-5 transition-all hover:border-[var(--gold-400)]/50"
+                        style={{ background: "var(--gradient-navy-card)" }}
                       >
-                        {/* Icon */}
-                        <div
-                          className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg"
-                          style={{ background: "rgba(250, 204, 21, 0.1)" }}
-                        >
-                          <section.icon size={24} className="text-[var(--gold-400)]" />
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: "rgba(250, 204, 21, 0.1)" }}>
+                          <feature.icon size={20} className="text-[var(--gold-400)]" />
                         </div>
-
-                        {/* Title + count */}
-                        <div className="flex items-baseline gap-2 mb-2">
-                          <h3 className="text-base font-bold text-[var(--text-primary)]">
-                            {section.title}
-                          </h3>
-                          <span className="text-sm font-semibold text-[var(--gold-400)]">
-                            {section.count}
-                          </span>
-                        </div>
-
-                        {/* Description */}
-                        <p className="text-xs text-[var(--text-secondary)] mb-4">
-                          {section.description}
-                        </p>
-
-                        {/* Upcoming items */}
-                        <div className="flex flex-col gap-2 mb-4">
-                          {section.items.map((item, j) => (
-                            <div key={j} className="flex items-start gap-2">
-                              <span
-                                className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold"
-                                style={{
-                                  background: "rgba(250, 204, 21, 0.1)",
-                                  color: "var(--gold-400)",
-                                }}
-                              >
-                                {item.date}
-                              </span>
-                              <span className="text-xs text-[var(--text-primary)] line-clamp-1">
-                                {item.title}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* CTA */}
-                        <button className="flex items-center gap-1 text-xs font-medium text-[var(--gold-400)] transition-colors hover:underline">
-                          {section.cta} <ArrowRight size={12} />
-                        </button>
+                        <h3 className="mb-1 text-sm font-semibold text-[var(--text-primary)]">{feature.title}</h3>
+                        <p className="text-xs text-[var(--text-secondary)]">{feature.desc}</p>
                       </motion.div>
                     ))}
-                  </div>
-
-                  {/* Featured Events */}
-                  <div
-                    className="rounded-[var(--radius-lg)] border border-[var(--navy-700)] p-5"
-                    style={{ background: "var(--gradient-navy-card)" }}
-                  >
-                    <div className="flex items-center gap-2 mb-4">
-                      <Calendar size={16} className="text-[var(--gold-400)]" />
-                      <h3 className="text-sm font-bold text-[var(--text-primary)]">近期活动</h3>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                      {[
-                        { date: "01/15", title: "Agent自动交易机制技术分享会", location: "线上", enrolled: 200 },
-                        { date: "01/20", title: "IP Agent信任评分模型研讨会", location: "北京", enrolled: 80 },
-                        { date: "02/05", title: "2026年春季Agent技能认证考试", location: "全国线上", enrolled: 1200 },
-                      ].map((event, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.1, duration: 0.3 }}
-                          className="flex items-center gap-4 rounded-lg border border-[var(--navy-700)] p-3"
-                          style={{ background: "rgba(30, 41, 59, 0.4)" }}
-                        >
-                          <div
-                            className="flex h-12 w-12 flex-col items-center justify-center rounded-lg shrink-0"
-                            style={{ background: "rgba(250, 204, 21, 0.1)" }}
-                          >
-                            <span className="text-xs font-bold text-[var(--gold-400)]">{event.date.split("/")[0]}</span>
-                            <span className="text-[10px] text-[var(--text-muted)]">{event.date.split("/")[1]}日</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-semibold text-[var(--text-primary)] truncate">
-                              {event.title}
-                            </div>
-                            <div className="text-xs text-[var(--text-muted)]">
-                              {event.location} · {event.enrolled}人已报名
-                            </div>
-                          </div>
-                          <button className="shrink-0 rounded-md border border-[var(--gold-400)] px-3 py-1.5 text-xs font-medium text-[var(--gold-400)] transition-colors hover:bg-[var(--gold-400)] hover:text-[var(--navy-900)]">
-                            报名
-                          </button>
-                        </motion.div>
-                      ))}
-                    </div>
                   </div>
                 </motion.div>
               )}
