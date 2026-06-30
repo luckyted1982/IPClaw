@@ -43,19 +43,6 @@ model User {
   creditAccount     CreditAccount?
   creditTransactions CreditTransaction[]
 
-  // 社区相关关系
-  communities       Community[]
-  communityMembers  CommunityMember[]
-  channelMessages   ChannelMessage[]
-  threadMessages    ThreadMessage[]
-  matters           Matter[]
-
-  // 外部智能体配置关系
-  externalAgentConfigs ExternalAgentConfig[]
-
-  // 消息反应关系
-  messageReactions MessageReaction[]
-
   @@map("users")
 }
 
@@ -81,7 +68,7 @@ model Agent {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
   
-  owner          User            @relation(fields: [ownerId], references: [id])
+  owner          User       @relation(fields: [ownerId], references: [id])
   tasks          Task[]
   bids           Bid[]
   conversations  Conversation[]
@@ -90,8 +77,6 @@ model Agent {
   agentTools     AgentTool[]
   agentKnowledge AgentKnowledge[]
   taskExecutions TaskExecution[]
-  channelMessages ChannelMessage[]
-  threadMessages  ThreadMessage[]
   
   @@map("agents")
 }
@@ -480,152 +465,4 @@ model CreditLevel {
   isActive         Boolean   @default(true)
 
   @@map("credit_levels")
-}
-
-// ==================== 社区系统 ====================
-
-model Community {
-  id          String            @id @default(cuid())
-  name        String
-  description String?
-  ownerId     String
-  accessType  String            @default("public")
-  avatar      String?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-
-  owner       User              @relation(fields: [ownerId], references: [id])
-  members     CommunityMember[]
-  channels    Channel[]
-  matters     Matter[]
-
-  @@map("communities")
-}
-
-model CommunityMember {
-  id          String     @id @default(cuid())
-  communityId String
-  userId      String
-  role        String     @default("member")
-  joinedAt    DateTime   @default(now())
-
-  community   Community  @relation(fields: [communityId], references: [id], onDelete: Cascade)
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([communityId, userId])
-  @@map("community_members")
-}
-
-model Channel {
-  id          String           @id @default(cuid())
-  name        String
-  description String?
-  communityId String
-  isDefault   Boolean          @default(false)
-  createdAt   DateTime         @default(now())
-
-  community   Community        @relation(fields: [communityId], references: [id], onDelete: Cascade)
-  threads     Thread[]
-  messages    ChannelMessage[]
-  matters     Matter[]
-
-  @@map("channels")
-}
-
-model Thread {
-  id          String           @id @default(cuid())
-  title       String
-  channelId   String
-  createdAt   DateTime         @default(now())
-
-  channel     Channel          @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  messages    ThreadMessage[]
-  matters     Matter[]
-
-  @@map("threads")
-}
-
-model ChannelMessage {
-  id          String           @id @default(cuid())
-  channelId   String
-  userId      String?
-  agentId     String?
-  content     String
-  type        String           @default("text")
-  createdAt   DateTime         @default(now())
-
-  channel     Channel          @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  user        User?            @relation(fields: [userId], references: [id])
-  agent       Agent?           @relation(fields: [agentId], references: [id])
-  reactions   MessageReaction[]
-
-  @@map("channel_messages")
-}
-
-model ThreadMessage {
-  id          String           @id @default(cuid())
-  threadId    String
-  userId      String?
-  agentId     String?
-  content     String
-  type        String           @default("text")
-  createdAt   DateTime         @default(now())
-
-  thread      Thread           @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  user        User?            @relation(fields: [userId], references: [id])
-  agent       Agent?           @relation(fields: [agentId], references: [id])
-
-  @@map("thread_messages")
-}
-
-model Matter {
-  id          String           @id @default(cuid())
-  title       String
-  description String
-  status      String           @default("open")
-  ownerId     String
-  communityId String
-  channelId   String?
-  threadId    String?
-  taskId      String?
-  deadline    DateTime?
-  deliverables String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-
-  owner       User             @relation(fields: [ownerId], references: [id])
-  community   Community        @relation(fields: [communityId], references: [id], onDelete: Cascade)
-  channel     Channel?         @relation(fields: [channelId], references: [id])
-  thread      Thread?          @relation(fields: [threadId], references: [id])
-
-  @@map("matters")
-}
-
-model ExternalAgentConfig {
-  id        String   @id @default(cuid())
-  name      String
-  type      String
-  config    String
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user      User     @relation(fields: [userId], references: [id])
-
-  @@unique([name, userId], name: "name_userId")
-  @@map("external_agent_configs")
-}
-
-model MessageReaction {
-  id        String         @id @default(cuid())
-  messageId String
-  userId    String
-  type      String
-  createdAt DateTime       @default(now())
-
-  message   ChannelMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  user      User           @relation(fields: [userId], references: [id])
-
-  @@unique([messageId, userId, type])
-  @@map("message_reactions")
 }

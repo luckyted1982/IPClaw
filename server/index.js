@@ -57,10 +57,14 @@ import pointsRoutes from './routes/pointsRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import creditRoutes from './routes/creditRoutes.js';
 import adminCreditRoutes from './routes/adminCreditRoutes.js';
+import communityRoutes from './routes/communityRoutes.js';
+import orchestrationRoutes from './routes/orchestrationRoutes.js';
+import externalAgentRoutes from './routes/externalAgentRoutes.js';
 import { callModel, listModels, addModelConfig, updateModelConfig, deleteModelConfig } from './lib/modelGateway.js';
 import { registerClient, unregisterClient, createNotification } from './controllers/notificationController.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { logger } from './middleware/logger.js';
+import { setupCommunityWebSocket } from './community-websocket.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -120,6 +124,9 @@ app.use('/api/points', pointsRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/credits', creditRoutes);
 app.use('/api/admin/credits', adminCreditRoutes);
+app.use('/api/communities', communityRoutes);
+app.use('/api/orchestration', orchestrationRoutes);
+app.use('/api/external-agents', externalAgentRoutes);
 
 app.get('/api/models', async (req, res) => {
   try {
@@ -507,6 +514,8 @@ app.use(errorHandler);
 
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
+
+setupCommunityWebSocket(wss);
 
 wss.on('connection', (ws, req) => {
   const urlParams = new URLSearchParams(req.url.slice(1));
