@@ -118,6 +118,9 @@ export default function Community() {
   const [messageInput, setMessageInput] = useState("");
   const [matters, setMatters] = useState<MatterItem[]>([]);
   const [threads, setThreads] = useState<ThreadItem[]>([]);
+  const [selectedThread, setSelectedThread] = useState<ThreadItem | null>(null);
+  const [threadMessages, setThreadMessages] = useState<MessageItem[]>([]);
+  const [threadReplyInput, setThreadReplyInput] = useState("");
   const [showCreateCommunity, setShowCreateCommunity] = useState(false);
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [showCreateMatter, setShowCreateMatter] = useState(false);
@@ -163,6 +166,12 @@ export default function Community() {
       fetchThreads();
     }
   }, [selectedChannel, token]);
+
+  useEffect(() => {
+    if (selectedThread) {
+      fetchThreadMessages();
+    }
+  }, [selectedThread, token]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -324,6 +333,46 @@ export default function Community() {
       }
     } catch (error) {
       console.error("Failed to fetch threads:", error);
+    }
+  };
+
+  const fetchThreadMessages = async () => {
+    if (!token || !selectedCommunity || !selectedChannel || !selectedThread) return;
+    try {
+      const response = await fetch(`/api/communities/${selectedCommunity.id}/channels/${selectedChannel.id}/threads/${selectedThread.id}/messages`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setThreadMessages(data.messages || data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch thread messages:", error);
+    }
+  };
+
+  const handleSendThreadReply = async () => {
+    if (!token || !selectedCommunity || !selectedChannel || !selectedThread || !threadReplyInput.trim()) return;
+    try {
+      const response = await fetch(`/api/communities/${selectedCommunity.id}/channels/${selectedChannel.id}/threads/${selectedThread.id}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ content: threadReplyInput.trim(), type: "text" }),
+      });
+      if (response.ok) {
+        setThreadReplyInput("");
+        fetchThreadMessages();
+        fetchThreads();
+      } else {
+        const data = await response.json();
+        alert(data.error || "发送失败");
+      }
+    } catch (error) {
+      console.error("Send thread reply error:", error);
+      alert("发送失败，请重试");
     }
   };
 
@@ -838,10 +887,10 @@ export default function Community() {
                           </div>
                           <Tabs value={activeTab} onValueChange={setActiveTab}>
                             <TabsList className="rounded-lg border border-[var(--navy-700)] p-1" style={{ background: "rgba(30,41,59,0.6)" }}>
-                              <TabsTrigger value="channels" className="rounded-md px-3 py-1.5 text-xs font-medium" style={{ color: activeTab === "channels" ? "var(--gold-400)" : "var(--text-muted)" }}>消息</TabsTrigger>
-                              <TabsTrigger value="threads" className="rounded-md px-3 py-1.5 text-xs font-medium" style={{ color: activeTab === "threads" ? "var(--gold-400)" : "var(--text-muted)" }}>话题</TabsTrigger>
-                              <TabsTrigger value="matters" className="rounded-md px-3 py-1.5 text-xs font-medium" style={{ color: activeTab === "matters" ? "var(--gold-400)" : "var(--text-muted)" }}>事项</TabsTrigger>
-                              <TabsTrigger value="analytics" className="rounded-md px-3 py-1.5 text-xs font-medium" style={{ color: activeTab === "analytics" ? "var(--gold-400)" : "var(--text-muted)" }}>分析</TabsTrigger>
+                              <TabsTrigger value="channels" onClick={() => setActiveTab("channels")} className="rounded-md px-3 py-1.5 text-xs font-medium" style={{ color: activeTab === "channels" ? "var(--gold-400)" : "var(--text-muted)" }}>消息</TabsTrigger>
+                              <TabsTrigger value="threads" onClick={() => setActiveTab("threads")} className="rounded-md px-3 py-1.5 text-xs font-medium" style={{ color: activeTab === "threads" ? "var(--gold-400)" : "var(--text-muted)" }}>话题</TabsTrigger>
+                              <TabsTrigger value="matters" onClick={() => setActiveTab("matters")} className="rounded-md px-3 py-1.5 text-xs font-medium" style={{ color: activeTab === "matters" ? "var(--gold-400)" : "var(--text-muted)" }}>事项</TabsTrigger>
+                              <TabsTrigger value="analytics" onClick={() => setActiveTab("analytics")} className="rounded-md px-3 py-1.5 text-xs font-medium" style={{ color: activeTab === "analytics" ? "var(--gold-400)" : "var(--text-muted)" }}>分析</TabsTrigger>
                             </TabsList>
                           </Tabs>
                         </div>
@@ -963,35 +1012,115 @@ export default function Community() {
                           )}
 
                           {activeTab === "threads" && (
-                            <div className="space-y-3 p-2">
-                              {threads.length === 0 ? (
-                                <div className="text-center py-16">
-                                  <div className="flex h-16 w-16 items-center justify-center rounded-full mx-auto mb-4" style={{ background: "rgba(250, 204, 21, 0.1)" }}>
-                                    <Sparkles size={32} className="text-[var(--gold-400)]" />
+                            <div className="flex flex-col h-full">
+                              {selectedThread ? (
+                                <>
+                                  <div className="flex items-center gap-2 mb-4 p-3 rounded-lg" style={{ background: "rgba(30,41,59,0.4)" }}>
+                                    <button
+                                      onClick={() => setSelectedThread(null)}
+                                      className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--gold-400)] transition-colors"
+                                    >
+                                      <ArrowRight size={16} style={{ transform: "rotate(180deg)" }} />
+                                    </button>
+                                    <h3 className="text-sm font-bold text-[var(--text-primary)]">{selectedThread.title}</h3>
+                                    <span className="text-xs text-[var(--text-muted)]">{selectedThread.messageCount} 条回复</span>
                                   </div>
-                                  <p className="text-sm text-[var(--text-primary)] mb-2">暂无话题</p>
-                                  <p className="text-xs text-[var(--text-muted)]">创建一个话题开始讨论</p>
-                                </div>
+                                  <div className="flex-1 overflow-y-auto space-y-3 p-2">
+                                    {threadMessages.length === 0 ? (
+                                      <div className="text-center py-8">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full mx-auto mb-3" style={{ background: "rgba(250, 204, 21, 0.1)" }}>
+                                          <Sparkles size={24} className="text-[var(--gold-400)]" />
+                                        </div>
+                                        <p className="text-sm text-[var(--text-primary)]">暂无回复</p>
+                                        <p className="text-xs text-[var(--text-muted)]">成为第一个回复的人</p>
+                                      </div>
+                                    ) : (
+                                      threadMessages.map((msg, i) => (
+                                        <motion.div
+                                          key={msg.id}
+                                          initial={{ opacity: 0, y: 10 }}
+                                          animate={{ opacity: 1, y: 0 }}
+                                          transition={{ delay: i * 0.05 }}
+                                          className="flex gap-2"
+                                        >
+                                          <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold shrink-0"
+                                            style={{
+                                              background: msg.user
+                                                ? "rgba(59, 130, 246, 0.2)"
+                                                : "linear-gradient(135deg, #FACC15, #EAB308)",
+                                              color: msg.user ? "var(--blue-400)" : "var(--navy-900)",
+                                            }}
+                                          >
+                                            {msg.user?.avatar || msg.user?.name?.charAt(0) || msg.agent?.avatar || "AI"}
+                                          </div>
+                                          <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-0.5">
+                                              <span className="text-xs font-semibold text-[var(--text-primary)]">
+                                                {msg.user?.name || msg.agent?.name || "系统"}
+                                              </span>
+                                              <span className="text-[10px] text-[var(--text-muted)]">{msg.createdAt}</span>
+                                            </div>
+                                            <p className="text-sm text-[var(--text-secondary)]">{msg.content}</p>
+                                          </div>
+                                        </motion.div>
+                                      ))
+                                    )}
+                                  </div>
+                                  <div className="border-t border-[var(--navy-700)] p-3 mt-3">
+                                    <div className="flex items-center gap-3">
+                                      <input
+                                        type="text"
+                                        value={threadReplyInput}
+                                        onChange={(e) => setThreadReplyInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === "Enter" && handleSendThreadReply()}
+                                        placeholder="回复话题..."
+                                        className="flex-1 rounded-lg border border-[var(--navy-700)] px-4 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)] transition-colors"
+                                      />
+                                      <button
+                                        onClick={handleSendThreadReply}
+                                        disabled={!threadReplyInput.trim()}
+                                        className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        style={{ background: "var(--gold-400)", color: "var(--navy-900)" }}
+                                      >
+                                        <Send size={14} />
+                                        回复
+                                      </button>
+                                    </div>
+                                  </div>
+                                </>
                               ) : (
-                                threads.map((thread, i) => (
-                                  <motion.div
-                                    key={thread.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    className="p-3 rounded-xl border border-[var(--navy-700)] hover:border-[var(--gold-400)] cursor-pointer transition-all"
-                                    style={{ background: "rgba(30,41,59,0.4)" }}
-                                  >
-                                    <div className="flex items-start justify-between">
-                                      <h4 className="text-sm font-semibold text-[var(--text-primary)]">{thread.title}</h4>
-                                      <ChevronRight size={16} className="text-[var(--text-muted)]" />
+                                <div className="flex-1 overflow-y-auto space-y-3 p-2">
+                                  {threads.length === 0 ? (
+                                    <div className="text-center py-16">
+                                      <div className="flex h-16 w-16 items-center justify-center rounded-full mx-auto mb-4" style={{ background: "rgba(250, 204, 21, 0.1)" }}>
+                                        <Sparkles size={32} className="text-[var(--gold-400)]" />
+                                      </div>
+                                      <p className="text-sm text-[var(--text-primary)] mb-2">暂无话题</p>
+                                      <p className="text-xs text-[var(--text-muted)]">创建一个话题开始讨论</p>
                                     </div>
-                                    <div className="flex items-center gap-3 mt-2 text-xs text-[var(--text-muted)]">
-                                      <span>{thread.messageCount} 条消息</span>
-                                      <span>{thread.createdAt}</span>
-                                    </div>
-                                  </motion.div>
-                                ))
+                                  ) : (
+                                    threads.map((thread, i) => (
+                                      <motion.div
+                                        key={thread.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        onClick={() => setSelectedThread(thread)}
+                                        className="p-3 rounded-xl border border-[var(--navy-700)] hover:border-[var(--gold-400)] cursor-pointer transition-all"
+                                        style={{ background: "rgba(30,41,59,0.4)" }}
+                                      >
+                                        <div className="flex items-start justify-between">
+                                          <h4 className="text-sm font-semibold text-[var(--text-primary)]">{thread.title}</h4>
+                                          <ChevronRight size={16} className="text-[var(--text-muted)]" />
+                                        </div>
+                                        <div className="flex items-center gap-3 mt-2 text-xs text-[var(--text-muted)]">
+                                          <span>{thread.messageCount} 条消息</span>
+                                          <span>{thread.createdAt}</span>
+                                        </div>
+                                      </motion.div>
+                                    ))
+                                  )}
+                                </div>
                               )}
                             </div>
                           )}
@@ -1326,8 +1455,8 @@ function TabsList({ children, className, style }) {
   return <div className={`flex p-1 rounded-lg ${className}`} style={style}>{children}</div>;
 }
 
-function TabsTrigger({ value, className, style, children }) {
-  return <button className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${className}`} style={style}>{children}</button>;
+function TabsTrigger({ value, className, style, children, onClick }) {
+  return <button onClick={onClick} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${className}`} style={style}>{children}</button>;
 }
 
 function CreateCommunityModal({ form, setForm, onSubmit, onClose }) {
@@ -1627,6 +1756,24 @@ function CreateThreadModal({ form, setForm, onSubmit, onClose }) {
 }
 
 function MatterDetailModal({ matter, form, setForm, onUpdate, onClose, onStatusChange }) {
+  const [assigneeInput, setAssigneeInput] = useState("");
+  const [comments, setComments] = useState<string[]>([]);
+  const [commentInput, setCommentInput] = useState("");
+
+  const handleAssign = () => {
+    if (assigneeInput.trim()) {
+      alert(`已将事项分配给: ${assigneeInput}`);
+      setAssigneeInput("");
+    }
+  };
+
+  const handleAddComment = () => {
+    if (commentInput.trim()) {
+      setComments([...comments, commentInput.trim()]);
+      setCommentInput("");
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -1650,7 +1797,7 @@ function MatterDetailModal({ matter, form, setForm, onUpdate, onClose, onStatusC
             <X size={20} />
           </button>
         </div>
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[var(--text-muted)]">当前状态</span>
             <div className="flex items-center gap-2">
@@ -1709,9 +1856,68 @@ function MatterDetailModal({ matter, form, setForm, onUpdate, onClose, onStatusC
               />
             </div>
           </div>
+          <div>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">分配给</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={assigneeInput}
+                onChange={(e) => setAssigneeInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAssign()}
+                placeholder="输入成员名称"
+                className="flex-1 rounded-lg border border-[var(--navy-700)] px-4 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)]"
+              />
+              <button
+                onClick={handleAssign}
+                disabled={!assigneeInput.trim()}
+                className="px-3 py-2 rounded-lg text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: "var(--gold-400)", color: "var(--navy-900)" }}
+              >
+                分配
+              </button>
+            </div>
+            {matter.assignee && (
+              <div className="flex items-center gap-2 mt-2 text-xs text-[var(--text-secondary)]">
+                <User size={12} />
+                当前负责人: {matter.assignee.name}
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <User size={14} className="text-[var(--text-muted)]" />
-            <span className="text-xs text-[var(--text-secondary)]">负责人: {matter.owner.name}</span>
+            <span className="text-xs text-[var(--text-secondary)]">创建人: {matter.owner.name}</span>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">评论</label>
+            <div className="space-y-2 mb-3">
+              {comments.length === 0 ? (
+                <p className="text-xs text-[var(--text-muted)]">暂无评论</p>
+              ) : (
+                comments.map((comment, i) => (
+                  <div key={i} className="p-2 rounded-lg text-xs text-[var(--text-secondary)]" style={{ background: "rgba(30,41,59,0.4)" }}>
+                    <span className="text-[var(--gold-400)] font-medium">我</span>: {comment}
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={commentInput}
+                onChange={(e) => setCommentInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
+                placeholder="添加评论..."
+                className="flex-1 rounded-lg border border-[var(--navy-700)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)]"
+              />
+              <button
+                onClick={handleAddComment}
+                disabled={!commentInput.trim()}
+                className="px-3 py-2 rounded-lg text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: "var(--gold-400)", color: "var(--navy-900)" }}
+              >
+                添加
+              </button>
+            </div>
           </div>
         </div>
         <div className="px-6 py-4 border-t border-[var(--navy-700)] flex justify-end gap-3">

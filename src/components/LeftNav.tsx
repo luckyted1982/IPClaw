@@ -21,6 +21,7 @@ const navItems = [
   { path: '/data-ip', label: '数据知识产权', icon: Database },
   { path: '/trade-secret', label: '商业秘密', icon: Lock },
   { path: '/agent-world', label: 'Agent World', icon: Bot },
+  { path: '/community', label: '社区协作', icon: Users },
   { path: '/experts', label: '专家平台', icon: Users },
   { path: '/finance', label: '金融投资', icon: DollarSign },
   { path: '/skillhub', label: '技能市场', icon: Wrench },

@@ -159,19 +159,15 @@ async function handleChat(req, res) {
   res.setHeader('X-Accel-Buffering', 'no');
 
   // 流式转发DeepSeek响应
-  const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let fullContent = '';
   let buffer = '';
 
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
+  return new Promise((resolve, reject) => {
+    response.body.on('data', (chunk) => {
+      buffer += decoder.decode(chunk, { stream: true });
       const lines = buffer.split('\n');
-      buffer = lines.pop() || ''; // 保留未完成的行
+      buffer = lines.pop() || '';
 
       for (const line of lines) {
         const trimmed = line.trim();
@@ -194,20 +190,52 @@ async function handleChat(req, res) {
           // 忽略非JSON行
         }
       }
-    }
+    });
 
-    // 尝试从完整响应中提取skillData
-    const skillData = extractSkillData(fullContent);
-    if (skillData) {
-      res.write(`data: ${JSON.stringify({ skillData })}\n\n`);
-    }
+    response.body.on('end', () => {
+      try {
+        // 处理最后剩余的数据
+        if (buffer) {
+          const trimmed = buffer.trim();
+          if (trimmed.startsWith('data:')) {
+            const data = trimmed.slice(5).trim();
+            if (data !== '[DONE]') {
+              try {
+                const parsed = JSON.parse(data);
+                const delta = parsed.choices?.[0]?.delta?.content;
+                if (delta) {
+                  fullContent += delta;
+                  res.write(`data: ${JSON.stringify({ content: delta })}\n\n`);
+                }
+              } catch {
+                // 忽略解析错误
+              }
+            }
+          }
+        }
 
-    res.write('data: [DONE]\n\n');
-    res.end();
-  } catch (streamError) {
-    console.error('[SkillBuilder] Stream error:', streamError);
-    res.end();
-  }
+        // 尝试从完整响应中提取skillData
+        const skillData = extractSkillData(fullContent);
+        if (skillData) {
+          res.write(`data: ${JSON.stringify({ skillData })}\n\n`);
+        }
+
+        res.write('data: [DONE]\n\n');
+        res.end();
+        resolve();
+      } catch (error) {
+        console.error('[SkillBuilder] Stream end error:', error);
+        res.end();
+        resolve();
+      }
+    });
+
+    response.body.on('error', (streamError) => {
+      console.error('[SkillBuilder] Stream error:', streamError);
+      res.end();
+      resolve();
+    });
+  });
 }
 
 // ════════════════════════════════════════════════

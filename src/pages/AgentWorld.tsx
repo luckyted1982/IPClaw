@@ -64,6 +64,11 @@ import {
   Trash2,
   Edit3,
   Cloud,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  Scan,
+  ExternalLink,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -624,6 +629,17 @@ export default function AgentWorld() {
   const [taskForm, setTaskForm] = useState({ title: '', description: '', budget: 10, category: 'general' });
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
+  const [externalAgentType, setExternalAgentType] = useState('openclaw');
+  const [externalAgentUrl, setExternalAgentUrl] = useState('');
+  const [externalAgentApiKey, setExternalAgentApiKey] = useState('');
+  const [externalAgentConfigs, setExternalAgentConfigs] = useState<any[]>([]);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<{ success: boolean; message: string; data?: any } | null>(null);
+  const [discoveredAgents, setDiscoveredAgents] = useState<any[]>([]);
+  const [adapterTypes, setAdapterTypes] = useState<any[]>([]);
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [configName, setConfigName] = useState('');
+
   const toggleLike = (id: number) => {
     setLikedPosts((prev) => {
       const next = new Set(prev);
@@ -710,27 +726,54 @@ export default function AgentWorld() {
     setIsChatting(true);
 
     try {
-      const response = await fetch(`/api/agents/${selectedAgent.id}/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          messages: [{ role: "user", content: userMessage }],
-          stream: false,
-        }),
-      });
+      if (selectedAgent.category === 'OpenClaw' || selectedAgent.category === 'Hermes') {
+        const response = await fetch('/api/external-agents/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            type: selectedAgent.category === 'OpenClaw' ? 'openclaw' : 'hermes',
+            config: {
+              baseUrl: externalAgentUrl,
+              apiKey: externalAgentApiKey,
+            },
+            messages: [{ role: 'user', content: userMessage }],
+            options: { stream: false },
+          }),
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        setChatMessages((prev) => [...prev, { role: "assistant", content: data.content }]);
+        if (response.ok) {
+          const data = await response.json();
+          setChatMessages((prev) => [...prev, { role: 'assistant', content: data.content || '未获取到响应' }]);
+        } else {
+          const errorData = await response.json();
+          setChatMessages((prev) => [...prev, { role: 'assistant', content: `请求失败: ${errorData.error || errorData.details || response.statusText}` }]);
+        }
       } else {
-        const errorData = await response.json();
-        setChatMessages((prev) => [...prev, { role: "assistant", content: `请求失败: ${errorData.error || errorData.details}` }]);
+        const response = await fetch(`/api/agents/${selectedAgent.id}/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: userMessage }],
+            stream: false,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setChatMessages((prev) => [...prev, { role: 'assistant', content: data.content }]);
+        } else {
+          const errorData = await response.json();
+          setChatMessages((prev) => [...prev, { role: 'assistant', content: `请求失败: ${errorData.error || errorData.details}` }]);
+        }
       }
     } catch (error) {
-      setChatMessages((prev) => [...prev, { role: "assistant", content: `请求失败: ${error}` }]);
+      setChatMessages((prev) => [...prev, { role: 'assistant', content: `请求失败: ${error}` }]);
     } finally {
       setIsChatting(false);
     }
@@ -972,6 +1015,170 @@ export default function AgentWorld() {
       default: return status;
     }
   };
+
+  const fetchAdapterTypes = async () => {
+    if (!token) return;
+    try {
+      const response = await fetch("/api/external-agents/adapters", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAdapterTypes(data.adapters);
+      }
+    } catch (error) {
+      console.error("Failed to fetch adapter types:", error);
+    }
+  };
+
+  const fetchExternalAgentConfigs = async () => {
+    if (!token) return;
+    try {
+      const response = await fetch("/api/external-agents/configs", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setExternalAgentConfigs(data.configs);
+      }
+    } catch (error) {
+      console.error("Failed to fetch external agent configs:", error);
+    }
+  };
+
+  const handleVerifyConnection = async () => {
+    if (!token || !externalAgentUrl) return;
+    setIsVerifying(true);
+    setVerifyResult(null);
+    try {
+      const response = await fetch("/api/external-agents/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          type: externalAgentType,
+          config: {
+            baseUrl: externalAgentUrl,
+            apiKey: externalAgentApiKey,
+          },
+        }),
+      });
+      const data = await response.json();
+      setVerifyResult(data);
+      if (data.success) {
+        handleDiscoverAgents();
+      }
+    } catch (error) {
+      setVerifyResult({ success: false, message: error.message });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleDiscoverAgents = async () => {
+    if (!token || !externalAgentUrl) return;
+    try {
+      const response = await fetch("/api/external-agents/discover", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          type: externalAgentType,
+          baseUrl: externalAgentUrl,
+        }),
+      });
+      const data = await response.json();
+      if (data.discovered) {
+        setDiscoveredAgents(data.agents || []);
+      }
+    } catch (error) {
+      console.error("Failed to discover agents:", error);
+    }
+  };
+
+  const handleSaveConfig = async () => {
+    if (!token || !configName || !externalAgentUrl) return;
+    try {
+      const response = await fetch("/api/external-agents/configs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: configName,
+          type: externalAgentType,
+          config: {
+            baseUrl: externalAgentUrl,
+            apiKey: externalAgentApiKey,
+          },
+        }),
+      });
+      if (response.ok) {
+        setShowConnectModal(false);
+        setConfigName('');
+        fetchExternalAgentConfigs();
+        alert("配置保存成功");
+      } else {
+        const data = await response.json();
+        alert(data.error || "保存失败");
+      }
+    } catch (error) {
+      console.error("Save config error:", error);
+      alert("保存失败");
+    }
+  };
+
+  const handleDeleteConfig = async (name: string) => {
+    if (!token || !confirm("确定删除这个配置吗？")) return;
+    try {
+      const response = await fetch(`/api/external-agents/configs/${name}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        fetchExternalAgentConfigs();
+      } else {
+        const data = await response.json();
+        alert(data.error || "删除失败");
+      }
+    } catch (error) {
+      console.error("Delete config error:", error);
+      alert("删除失败");
+    }
+  };
+
+  const handleChatWithExternalAgent = async (config: any) => {
+    if (!token) return;
+    try {
+      const parsedConfig = JSON.parse(config.config);
+      setSelectedAgent({
+        id: config.name,
+        name: config.name,
+        avatar: config.type.charAt(0).toUpperCase(),
+        category: config.type === 'openclaw' ? 'OpenClaw' : 'Hermes',
+      });
+      setChatMessages([]);
+      setShowChatModal(true);
+      setExternalAgentType(config.type);
+      setExternalAgentUrl(parsedConfig.baseUrl);
+      setExternalAgentApiKey(parsedConfig.apiKey || '');
+    } catch (error) {
+      console.error("Load config error:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "myagent" && token) {
+      fetchMyAgents();
+      fetchAdapterTypes();
+      fetchExternalAgentConfigs();
+    }
+  }, [activeTab, token]);
 
   return (
     <Layout>
@@ -1769,53 +1976,123 @@ export default function AgentWorld() {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-sm font-bold text-[var(--text-primary)] mb-1">
-                          接入外部OpenClaw智能体
+                          接入外部智能体
                         </h3>
                         <p className="text-xs text-[var(--text-muted)]">
-                          将您在其他平台或本地运行的OpenClaw智能体链接到平台，统一管理和调用
+                          将您在其他平台或本地运行的OpenClaw/Hermes智能体链接到平台，统一管理和调用
                         </p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Scan QR Code */}
-                      <div className="p-4 rounded-lg border border-[var(--navy-700)]" style={{ background: "rgba(15,23,42,0.6)" }}>
-                        <div className="flex items-center gap-2 mb-3">
-                          <Hash size={16} className="text-[var(--gold-400)]" />
-                          <span className="text-xs font-semibold text-[var(--text-primary)]">扫描链接（推荐）</span>
-                        </div>
-                        <div className="flex items-center justify-center h-32 rounded-lg" style={{ background: '#0F172A', border: '1px dashed var(--navy-600)' }}>
-                          <div className="text-center">
-                            <Hash size={40} className="mx-auto mb-2 text-[var(--navy-600)]" />
-                            <p className="text-xs text-[var(--text-muted)]">打开OpenClaw APP<br/>扫描二维码链接</p>
-                          </div>
-                        </div>
-                        <button className="w-full mt-3 py-2 rounded-lg text-xs font-medium border border-[var(--gold-400)] text-[var(--gold-400)] hover:bg-[var(--gold-400)] hover:text-[var(--navy-900)] transition-colors">
-                          生成链接二维码
-                        </button>
-                      </div>
-
-                      {/* Manual Input */}
-                      <div className="p-4 rounded-lg border border-[var(--navy-700)]" style={{ background: "rgba(15,23,42,0.6)" }}>
-                        <div className="flex items-center gap-2 mb-3">
-                          <Network size={16} className="text-[var(--gold-400)]" />
-                          <span className="text-xs font-semibold text-[var(--text-primary)]">手动链接</span>
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="输入OpenClaw实例URL..."
-                          className="w-full rounded-lg border border-[var(--navy-700)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)] mb-2"
-                        />
-                        <input
-                          type="text"
-                          placeholder="输入API密钥..."
-                          className="w-full rounded-lg border border-[var(--navy-700)] px-3 py-2 text-xs text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)] mb-3"
-                        />
-                        <button className="w-full py-2 rounded-lg text-xs font-medium" style={{ background: 'var(--gold-400)', color: 'var(--navy-900)' }}>
-                          验证并链接
-                        </button>
-                      </div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="text-xs text-[var(--text-muted)]">适配器类型:</span>
+                      <select
+                        value={externalAgentType}
+                        onChange={(e) => {
+                          setExternalAgentType(e.target.value);
+                          const adapterInfo = adapterTypes.find((a) => a.type === e.target.value);
+                          if (adapterInfo) {
+                            setExternalAgentUrl(adapterInfo.defaultBaseUrl || '');
+                          }
+                        }}
+                        className="rounded-lg border border-[var(--navy-700)] px-3 py-1.5 text-xs text-[var(--text-primary)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)]"
+                      >
+                        {adapterTypes.map((adapter) => (
+                          <option key={adapter.type} value={adapter.type}>
+                            {adapter.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => setShowConnectModal(true)}
+                        className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--gold-400)] text-[var(--gold-400)] hover:bg-[var(--gold-400)] hover:text-[var(--navy-900)] transition-colors"
+                      >
+                        <Plus size={14} />
+                        新建连接
+                      </button>
                     </div>
+
+                    {externalAgentConfigs.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-semibold text-[var(--text-primary)] mb-2">已连接的外部智能体</h4>
+                        {externalAgentConfigs.map((config) => {
+                          const parsedConfig = JSON.parse(config.config);
+                          const adapterInfo = adapterTypes.find((a) => a.type === config.type);
+                          return (
+                            <motion.div
+                              key={config.name}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="flex items-center justify-between p-3 rounded-lg border border-[var(--navy-700)]"
+                              style={{ background: "rgba(15,23,42,0.6)" }}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
+                                  style={{
+                                    background: config.type === 'openclaw'
+                                      ? 'linear-gradient(135deg, #FACC15, #EAB308)'
+                                      : 'linear-gradient(135deg, #8B5CF6, #7C3AED)',
+                                    color: 'var(--navy-900)',
+                                  }}
+                                >
+                                  {adapterInfo?.name?.charAt(0) || 'A'}
+                                </div>
+                                <div>
+                                  <div className="text-xs font-semibold text-[var(--text-primary)]">
+                                    {config.name}
+                                  </div>
+                                  <div className="text-[10px] text-[var(--text-muted)]">
+                                    {adapterInfo?.name} · {parsedConfig.baseUrl}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleChatWithExternalAgent(config)}
+                                  className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium text-[var(--gold-400)] border border-[var(--gold-400)] hover:bg-[var(--gold-400)] hover:text-[var(--navy-900)] transition-colors"
+                                >
+                                  <MessageCircle size={10} />
+                                  对话
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteConfig(config.name)}
+                                  className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {externalAgentConfigs.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <div
+                          className="flex h-16 w-16 items-center justify-center rounded-full mb-4"
+                          style={{ background: "rgba(250, 204, 21, 0.1)" }}
+                        >
+                          <Link2 size={32} className="text-[var(--gold-400)]" />
+                        </div>
+                        <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">暂无外部智能体连接</h4>
+                        <p className="text-xs text-[var(--text-muted)] mb-4 max-w-sm">
+                          将您在其他平台或本地运行的智能体接入到IPClaw平台，支持OpenClaw、Hermes等多种类型
+                        </p>
+                        <button
+                          onClick={() => setShowConnectModal(true)}
+                          className="flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all hover:scale-105"
+                          style={{
+                            background: "linear-gradient(135deg, #FACC15, #EAB308)",
+                            color: "var(--navy-900)",
+                          }}
+                        >
+                          <Plus size={18} />
+                          接入外部智能体
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Cloud Space Rental */}
@@ -2635,6 +2912,220 @@ export default function AgentWorld() {
                     {isChatting ? "发送中" : "发送"}
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* External Agent Connect Modal */}
+      <AnimatePresence>
+        {showConnectModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(4px)" }}
+            onClick={() => setShowConnectModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--navy-700)]"
+              style={{ background: "var(--gradient-navy-card)" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--navy-700)]">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
+                    style={{
+                      background: "linear-gradient(135deg, #FACC15, #EAB308)",
+                      color: "var(--navy-900)",
+                    }}
+                  >
+                    <Link2 size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[var(--text-primary)]">接入外部智能体</h3>
+                    <p className="text-xs text-[var(--text-muted)]">配置外部智能体连接信息</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowConnectModal(false);
+                    setVerifyResult(null);
+                    setDiscoveredAgents([]);
+                    setConfigName('');
+                  }}
+                  className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--navy-700)] transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">适配器类型</label>
+                  <select
+                    value={externalAgentType}
+                    onChange={(e) => {
+                      setExternalAgentType(e.target.value);
+                      const adapterInfo = adapterTypes.find((a) => a.type === e.target.value);
+                      if (adapterInfo) {
+                        setExternalAgentUrl(adapterInfo.defaultBaseUrl || '');
+                      }
+                    }}
+                    className="w-full rounded-lg border border-[var(--navy-700)] px-4 py-2.5 text-sm text-[var(--text-primary)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)] transition-colors"
+                  >
+                    {adapterTypes.map((adapter) => (
+                      <option key={adapter.type} value={adapter.type}>
+                        {adapter.name} - {adapter.description}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">连接名称</label>
+                  <input
+                    type="text"
+                    value={configName}
+                    onChange={(e) => setConfigName(e.target.value)}
+                    placeholder="为这个连接起个名字"
+                    className="w-full rounded-lg border border-[var(--navy-700)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)] transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">
+                    智能体地址 (Base URL)
+                    <span className="text-red-400 ml-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={externalAgentUrl}
+                    onChange={(e) => setExternalAgentUrl(e.target.value)}
+                    placeholder={externalAgentType === 'openclaw' ? 'http://localhost:18789' : 'http://localhost:8642'}
+                    className="w-full rounded-lg border border-[var(--navy-700)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)] transition-colors"
+                  />
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1">
+                    {externalAgentType === 'openclaw'
+                      ? 'OpenClaw网关地址，默认端口18789。如果是远程服务器，请输入公网地址如 http://your-server-ip:18789'
+                      : 'Hermes网关地址，默认端口8642'}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-2">API密钥 (可选)</label>
+                  <input
+                    type="text"
+                    value={externalAgentApiKey}
+                    onChange={(e) => setExternalAgentApiKey(e.target.value)}
+                    placeholder="输入API密钥或Token"
+                    className="w-full rounded-lg border border-[var(--navy-700)] px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-[rgba(15,23,42,0.6)] outline-none focus:border-[var(--gold-400)] transition-colors"
+                  />
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1">
+                    获取方式: OpenClaw运行命令 openclaw config get gateway.auth.token | Hermes在~/.hermes/.env中设置API_SERVER_KEY
+                  </p>
+                </div>
+
+                {verifyResult && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-3 rounded-lg ${
+                      verifyResult.success
+                        ? 'bg-green-500/10 border border-green-500/30'
+                        : 'bg-red-500/10 border border-red-500/30'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      {verifyResult.success ? (
+                        <CheckCircle size={16} className="text-green-400 shrink-0 mt-0.5" />
+                      ) : (
+                        <div className="flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-red-400 border border-red-400 shrink-0 mt-0.5">!</div>
+                      )}
+                      <div>
+                        <p className={`text-xs font-medium ${verifyResult.success ? 'text-green-400' : 'text-red-400'}`}>
+                          {verifyResult.success ? '连接验证成功' : '连接验证失败'}
+                        </p>
+                        <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{verifyResult.message}</p>
+                        {verifyResult.data && (
+                          <pre className="text-[10px] text-[var(--text-secondary)] mt-1 p-2 rounded bg-[rgba(0,0,0,0.3)] overflow-x-auto">
+                            {JSON.stringify(verifyResult.data, null, 2)}
+                          </pre>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {discoveredAgents.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Search size={14} className="text-blue-400" />
+                      <span className="text-xs font-medium text-blue-400">发现 {discoveredAgents.length} 个智能体</span>
+                    </div>
+                    <div className="space-y-1">
+                      {discoveredAgents.slice(0, 5).map((agent, i) => (
+                        <div key={i} className="text-[10px] text-[var(--text-secondary)] truncate">
+                          • {agent.name || agent.id || agent.model}
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+
+              <div className="px-6 py-4 border-t border-[var(--navy-700)] flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowConnectModal(false);
+                    setVerifyResult(null);
+                    setDiscoveredAgents([]);
+                    setConfigName('');
+                  }}
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] border border-[var(--navy-700)] hover:border-[var(--navy-500)] transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleVerifyConnection}
+                  disabled={isVerifying || !externalAgentUrl}
+                  className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  style={{
+                    background: "linear-gradient(135deg, #3B82F6, #2563EB)",
+                    color: "white",
+                  }}
+                >
+                  {isVerifying ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      验证中
+                    </div>
+                  ) : (
+                    '验证连接'
+                  )}
+                </button>
+                <button
+                  onClick={handleSaveConfig}
+                  disabled={!configName || !externalAgentUrl || (verifyResult && !verifyResult.success)}
+                  className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  style={{
+                    background: "linear-gradient(135deg, #FACC15, #EAB308)",
+                    color: "var(--navy-900)",
+                  }}
+                >
+                  保存配置
+                </button>
               </div>
             </motion.div>
           </motion.div>

@@ -114,6 +114,108 @@ function maskPrompt(prompt: string): string {
   return `${head}${'*'.repeat(maskedLength)}${tail}  (${prompt.length}字符已加密)`
 }
 
+function generateChatFallback(userInput: string): string {
+  const input = (userInput || '').toLowerCase()
+
+  let category = '通用'
+  let suggestedName = '自定义技能'
+  let promptTemplate = ''
+
+  if (/专利|patent|查新|检索|撰写|FTO|侵权/i.test(input)) {
+    category = '专利'
+    suggestedName = input.includes('查新') ? '智能专利查新分析师' :
+                    input.includes('撰写') ? '专利撰写助手' :
+                    input.includes('FTO') ? 'FTO防侵权专家' : '专利智能助手'
+    promptTemplate = `你是一个专业的${suggestedName}。你的任务是${input.includes('查新') ? '对给定技术方案进行新颖性检索和分析' : input.includes('撰写') ? '根据技术交底书生成规范的专利申请文件' : '为用户提供专业的专利相关服务'}。
+
+## 核心能力
+- 深入理解技术方案的实质创新点
+- 基于法律法规提供专业意见
+- 结构化输出分析结果
+
+## 工作规则
+1. 首先确认用户的具体需求
+2. 基于专业知识进行分析
+3. 给出可执行的建议
+4. 如有不确定之处主动询问
+
+## 输出格式
+使用Markdown结构化输出，包含必要的表格和列表。`
+  } else if (/商标|trademark|品牌|近似|注册|监测/i.test(input)) {
+    category = '商标'
+    suggestedName = '商标智能顾问'
+    promptTemplate = `你是一个专业的商标智能顾问。你的任务是为用户提供商标相关的专业服务，包括商标近似查询、注册风险评估、商标监测预警等。
+
+## 核心能力
+- 商标近似度分析与评估
+- 注册成功率预测
+- 品牌保护策略建议
+
+## 工作规则
+1. 准确理解用户的商标需求
+2. 基于尼斯分类体系进行分析
+3. 提供具体可行的行动建议`
+  } else if (/版权|copyright|著作权|侵权|监测/i.test(input)) {
+    category = '版权'
+    suggestedName = '版权保护专家'
+    promptTemplate = `你是一个专业的版权保护专家。你的任务是为用户提供版权登记、侵权监测、维权支持等服务。`
+  } else if (/合规|compliance|风险|扫描/i.test(input)) {
+    category = '合规风控'
+    suggestedName = 'IP合规审查员'
+    promptTemplate = `你是一个专业的IP合规审查员。你的任务是为用户提供知识产权合规性检查和风险预警服务。`
+  } else if (/估值|valuation|价值|评估/i.test(input)) {
+    category = '估值分析'
+    suggestedName = 'IP价值评估师'
+    promptTemplate = `你是一个专业的IP价值评估师。你的任务是为用户提供知识产权的价值评估服务，包括成本法、收益法、市场法等多种评估方法。`
+  } else if (/翻译|translation|语言/i.test(input)) {
+    category = '翻译通用'
+    suggestedName = 'IP翻译专家'
+    promptTemplate = `你是一个专业的IP翻译专家。你的任务是为用户提供高质量的知识产权文档翻译服务，确保术语准确性和法律效力。`
+  } else {
+    suggestedName = 'IP智能助手'
+    promptTemplate = `你是一个专业的知识产权AI助手。请根据用户的需求提供专业的IP相关服务和建议。`
+  }
+
+  return `感谢你的详细描述！基于你的需求，我为你生成了初步的技能方案：
+
+## 技能概要
+- **名称**: ${suggestedName}
+- **分类**: ${category}
+- **定位**: 基于"${input.slice(0, 50)}${input.length > 50 ? '...' : ''}"的需求定制
+
+## 已生成的系统提示词如下：
+
+\`\`\`prompt
+${promptTemplate}
+\`\`\`
+
+> 你可以在下一步中调整和完善这个提示词。如需修改任何部分，请告诉我！
+
+\`\`\`json
+{
+  "skillData": {
+    "name": "${suggestedName}",
+    "category": "${category}",
+    "description": "基于用户需求定制的${category}类AI技能",
+    "systemPrompt": ${JSON.stringify(promptTemplate)}
+  }
+}
+\`\`\``
+}
+
+function extractSkillDataFromFallback(content: string) {
+  const jsonBlockMatch = content.match(/```json\s*([\s\S]*?)```/i)
+  if (jsonBlockMatch) {
+    try {
+      const parsed = JSON.parse(jsonBlockMatch[1].trim())
+      if (parsed.skillData) return parsed.skillData
+    } catch {
+      // ignore
+    }
+  }
+  return null
+}
+
 // ════════════════════════════════════════════════
 //  Main Component
 // ════════════════════════════════════════════════
@@ -229,7 +331,14 @@ export default function SkillCreator({ open, onClose, onSkillCreated }: SkillCre
         }),
       })
 
-      if (!response.ok || !response.body) throw new Error('API请求失败')
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`API请求失败: ${response.status} - ${errorText}`)
+      }
+
+      if (!response.body) {
+        throw new Error('响应体为空')
+      }
 
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
@@ -242,33 +351,32 @@ export default function SkillCreator({ open, onClose, onSkillCreated }: SkillCre
         const chunk = decoder.decode(value, { stream: true })
         const lines = chunk.split('\n')
         for (const line of lines) {
-          if (line.startsWith('data:')) {
-            const data = line.slice(5).trim()
-            if (data === '[DONE]') continue
-            try {
-              const parsed = JSON.parse(data)
-              if (parsed.content) {
-                accumulated += parsed.content
-                setChatMessages(prev =>
-                  prev.map(m => m.id === aiMsgId ? { ...m, content: accumulated } : m)
-                )
-              }
-              // Extract structured skill data if present
-              if (parsed.skillData) {
-                setDraft(prev => ({
-                  ...prev,
-                  name: parsed.skillData.name || prev.name,
-                  category: parsed.skillData.category || prev.category,
-                  description: parsed.skillData.description || prev.description,
-                  systemPrompt: parsed.skillData.systemPrompt || prev.systemPrompt,
-                }))
-              }
-            } catch { /* ignore */ }
-          }
+          const trimmed = line.trim()
+          if (!trimmed || !trimmed.startsWith('data:')) continue
+
+          const data = trimmed.slice(5).trim()
+          if (data === '[DONE]') continue
+          try {
+            const parsed = JSON.parse(data)
+            if (parsed.content) {
+              accumulated += parsed.content
+              setChatMessages(prev =>
+                prev.map(m => m.id === aiMsgId ? { ...m, content: accumulated } : m)
+              )
+            }
+            if (parsed.skillData) {
+              setDraft(prev => ({
+                ...prev,
+                name: parsed.skillData.name || prev.name,
+                category: parsed.skillData.category || prev.category,
+                description: parsed.skillData.description || prev.description,
+                systemPrompt: parsed.skillData.systemPrompt || prev.systemPrompt,
+              }))
+            }
+          } catch { /* ignore */ }
         }
       }
 
-      // Auto-extract final prompt from conversation
       if (accumulated.includes('```') && !draft.systemPrompt) {
         const promptMatch = accumulated.match(/```(?:prompt|system)?\s*\n([\s\S]+?)```/i)
         if (promptMatch) {
@@ -277,13 +385,27 @@ export default function SkillCreator({ open, onClose, onSkillCreated }: SkillCre
       }
     } catch (err) {
       console.error('[SkillCreator] Chat error:', err)
+      const errorMsg = err instanceof Error ? err.message : '未知错误'
+      const fallbackContent = generateChatFallback(msgText)
+      
       setChatMessages(prev =>
         prev.map(m =>
           m.id === aiMsgId
-            ? { ...m, content: '抱歉，连接服务器失败。请检查后端服务是否正常运行。\n\n你可以继续描述你的需求，我会基于已有信息帮你生成技能。' }
+            ? { ...m, content: `${fallbackContent}\n\n---\n⚠️ 注意：API调用出现问题（${errorMsg}），以上为离线生成的技能方案。` }
             : m
         )
       )
+
+      const skillData = extractSkillDataFromFallback(fallbackContent)
+      if (skillData) {
+        setDraft(prev => ({
+          ...prev,
+          name: skillData.name || prev.name,
+          category: skillData.category || prev.category,
+          description: skillData.description || prev.description,
+          systemPrompt: skillData.systemPrompt || prev.systemPrompt,
+        }))
+      }
     } finally {
       setIsStreaming(false)
     }
