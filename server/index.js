@@ -60,6 +60,7 @@ import adminCreditRoutes from './routes/adminCreditRoutes.js';
 import communityRoutes from './routes/communityRoutes.js';
 import orchestrationRoutes from './routes/orchestrationRoutes.js';
 import externalAgentRoutes from './routes/externalAgentRoutes.js';
+import officeActionRoutes from './routes/officeActionRoutes.js';
 import { callModel, listModels, addModelConfig, updateModelConfig, deleteModelConfig } from './lib/modelGateway.js';
 import { registerClient, unregisterClient, createNotification } from './controllers/notificationController.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -91,10 +92,17 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.use(limiter);
 app.use(logger);
+
+import fileUpload from 'express-fileupload';
+app.use(fileUpload({
+  limits: { fileSize: 50 * 1024 * 1024 },
+  useTempFiles: true,
+  tempFileDir: '/tmp/'
+}));
 
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com/v1';
@@ -127,6 +135,7 @@ app.use('/api/admin/credits', adminCreditRoutes);
 app.use('/api/communities', communityRoutes);
 app.use('/api/orchestration', orchestrationRoutes);
 app.use('/api/external-agents', externalAgentRoutes);
+app.use('/api/office-action', officeActionRoutes);
 
 app.get('/api/models', async (req, res) => {
   try {

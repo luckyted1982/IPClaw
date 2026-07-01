@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronRight, ChevronLeft, Check, Sparkles, Wand2,
@@ -6,7 +6,8 @@ import {
   Scale, TrendingUp, Send, ExternalLink, Lightbulb,
   AlertCircle, Loader2, X, Plus, CircleDot, ArrowRight,
   Download, Copy, Bot, Eye, EyeOff, Shield, Target,
-  Award, Globe, Factory, Lock, Unlock, FileSearch,
+  Award, Globe, Factory, Lock, Unlock, FileSearch, File,
+  Paperclip, RefreshCw, CheckCircle2, XCircle, CloudUpload
 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 
@@ -18,28 +19,24 @@ interface OfficeActionData {
   officeActionDate: string
   deadline: string
   examinerName: string
-  // Step 1
   officeActionContent: string
   claimsContent: string
-  // Step 2
+  comparisonFileContents: string[]
+  comparisonFileNames: string[]
+  otherFileContents: string[]
+  otherFileNames: string[]
   featureComparison: string
   synergyAnalysis: string
-  // Step 3
   closestPriorArtAnalysis: string
   technicalProblemDiff: string
-  // Step 4
   distinguishingFeatures: string
   secondaryReferenceAnalysis: string
-  // Step 5
   commonKnowledgePoints: string
   routineMeansAnalysis: string
-  // Step 6
   hindsightAnalysis: string
   gapAnalysis: string
-  // Step 7
   socialValue: string
   economicValue: string
-  // Step 8
   responseContent: string
   amendedClaims: string
 }
@@ -597,6 +594,8 @@ function getStepTemplate(stepId: StepId): string {
 export default function OfficeActionWizard() {
   const [currentStep, setCurrentStep] = useState<number>(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [uploadingFiles, setUploadingFiles] = useState(false)
+  const [uploadedFiles, setUploadedFiles] = useState<Record<string, { name: string; status: 'pending' | 'uploading' | 'success' | 'error'; content?: string }>>({})
   const [projectData, setProjectData] = useState<OfficeActionData>({
     caseNumber: '',
     applicationNumber: '',
@@ -607,6 +606,10 @@ export default function OfficeActionWizard() {
     examinerName: '',
     officeActionContent: '',
     claimsContent: '',
+    comparisonFileContents: [],
+    comparisonFileNames: [],
+    otherFileContents: [],
+    otherFileNames: [],
     featureComparison: '',
     synergyAnalysis: '',
     closestPriorArtAnalysis: '',
@@ -622,6 +625,11 @@ export default function OfficeActionWizard() {
     responseContent: '',
     amendedClaims: '',
   })
+
+  const officeActionRef = useRef<HTMLInputElement>(null)
+  const claimsRef = useRef<HTMLInputElement>(null)
+  const comparisonFilesRef = useRef<HTMLInputElement>(null)
+  const otherFilesRef = useRef<HTMLInputElement>(null)
 
   const currentStepData = STEPS[currentStep]
 
@@ -641,53 +649,240 @@ export default function OfficeActionWizard() {
     setProjectData(prev => ({ ...prev, [field]: value }))
   }
 
+  const handleFileUpload = async (fileType: string, files: FileList | null) => {
+    if (!files || files.length === 0) return
+
+    setUploadingFiles(true)
+    
+    const formData = new FormData()
+    const fileArray = Array.from(files)
+    
+    fileArray.forEach(file => {
+      if (fileType === 'comparisonFiles' || fileType === 'otherFiles') {
+        formData.append(fileType, file)
+      } else {
+        formData.append(fileType, file)
+      }
+    })
+
+    try {
+      const response = await fetch('/api/office-action/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        const newUploadedFiles: Record<string, { name: string; status: 'success'; content?: string }> = {}
+        
+        if (result.data.officeActionContent) {
+          setProjectData(prev => ({ ...prev, officeActionContent: result.data.officeActionContent }))
+          newUploadedFiles['officeAction'] = { name: files[0].name, status: 'success', content: result.data.officeActionContent }
+        }
+        if (result.data.claimsContent) {
+          setProjectData(prev => ({ ...prev, claimsContent: result.data.claimsContent }))
+          newUploadedFiles['claims'] = { name: files[0].name, status: 'success', content: result.data.claimsContent }
+        }
+        if (result.data.comparisonFileContents && result.data.comparisonFileNames) {
+          setProjectData(prev => ({ 
+            ...prev, 
+            comparisonFileContents: [...prev.comparisonFileContents, ...result.data.comparisonFileContents],
+            comparisonFileNames: [...prev.comparisonFileNames, ...result.data.comparisonFileNames]
+          }))
+          result.data.comparisonFileNames.forEach((name: string, index: number) => {
+            newUploadedFiles[`comparison_${name}_${Date.now()}_${index}`] = { name, status: 'success', content: result.data.comparisonFileContents[index] }
+          })
+        }
+        if (result.data.otherFileContents && result.data.otherFileNames) {
+          setProjectData(prev => ({ 
+            ...prev, 
+            otherFileContents: [...prev.otherFileContents, ...result.data.otherFileContents],
+            otherFileNames: [...prev.otherFileNames, ...result.data.otherFileNames]
+          }))
+          result.data.otherFileNames.forEach((name: string, index: number) => {
+            newUploadedFiles[`other_${name}_${Date.now()}_${index}`] = { name, status: 'success', content: result.data.otherFileContents[index] }
+          })
+        }
+
+        setUploadedFiles(prev => ({ ...prev, ...newUploadedFiles }))
+      } else {
+        console.error('Upload failed:', result.error)
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      fileArray.forEach((file, index) => {
+        const key = fileType === 'comparisonFiles' || fileType === 'otherFiles' 
+          ? `${fileType}_${file.name}_${Date.now()}_${index}` 
+          : fileType
+        setUploadedFiles(prev => ({ ...prev, [key]: { name: file.name, status: 'error' } }))
+      })
+    } finally {
+      setUploadingFiles(false)
+    }
+  }
+
   const handleAiAction = async () => {
     setIsSubmitting(true)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    const aiGeneratedContent: Partial<OfficeActionData> = {
-      import: {
-        officeActionContent: 'AI已解析审查意见，识别出创造性驳回理由，涉及对比文件1和对比文件2。',
-      },
-      featureCompare: {
-        featureComparison: 'AI已生成技术特征对比表，识别出3个关键区别特征及其协同作用。',
-        synergyAnalysis: '特征A与特征B的协同作用产生了意想不到的技术效果，这种协同在现有技术中未被披露。',
-      },
-      closestPriorArt: {
-        closestPriorArtAnalysis: 'AI分析表明对比文件1与本申请要解决的技术问题存在本质差异，不适合作为最接近现有技术。',
-        technicalProblemDiff: '对比文件1解决的是效率问题，而本申请解决的是精度问题，二者技术路径完全不同。',
-      },
-      distinguishingFeatures: {
-        distinguishingFeatures: '审查员对区别特征的认定存在事实错误，特征X的描述不准确。',
-        secondaryReferenceAnalysis: '对比文件2无法提供技术启示，因为其技术领域和应用场景与本申请完全不同。',
-      },
-      commonKnowledge: {
-        commonKnowledgePoints: '审查意见中使用了3次"常规技术手段"或"公知常识"，均未提供证据支持。',
-        routineMeansAnalysis: '审查员滥用"常规技术手段"表述，未引用任何法律依据或现有技术文献。',
-      },
-      hindsight: {
-        hindsightAnalysis: '审查员采用了典型的"事后诸葛亮"倒推方法，违背了三步法的正向推导原则。',
-        gapAnalysis: '从对比文件1出发，本领域技术人员无法显而易见地得到本申请的技术方案。',
-      },
-      valueAnalysis: {
-        socialValue: '本专利属于卡脖子技术领域，实现了核心技术自主可控，具有重要的战略意义。',
-        economicValue: '本专利有助于打破国外技术垄断，实现国产替代，预估年经济效益可达XX万元。',
-      },
-      writeResponse: {
-        responseContent: 'AI已生成审查意见答复书初稿，包含完整的论证逻辑和修改建议。',
-        amendedClaims: 'AI已生成修改后的权利要求书，优化了权利要求层次和保护范围。',
-      },
-    }[STEPS[currentStep].id]
 
-    if (aiGeneratedContent) {
-      setProjectData(prev => ({ ...prev, ...aiGeneratedContent }))
+    try {
+      const response = await fetch('/api/office-action/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          step: STEPS[currentStep].id,
+          projectData,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        const data = result.data
+        
+        if (currentStep === 0 && data.caseInfo) {
+          setProjectData(prev => ({
+            ...prev,
+            caseNumber: data.caseInfo.caseNumber || prev.caseNumber,
+            applicationNumber: data.caseInfo.applicationNumber || prev.applicationNumber,
+            inventionName: data.caseInfo.inventionName || prev.inventionName,
+            applicant: data.caseInfo.applicant || prev.applicant,
+            officeActionDate: data.caseInfo.officeActionDate || prev.officeActionDate,
+            deadline: data.caseInfo.deadline || prev.deadline,
+            examinerName: data.caseInfo.examinerName || prev.examinerName,
+            officeActionContent: data.rawContent || prev.officeActionContent,
+          }))
+        } else if (currentStep === 1 && data.featureComparisonTable) {
+          const tableContent = `## 技术特征对比表\n\n${JSON.stringify(data.featureComparisonTable, null, 2)}\n\n## 协同作用分析\n${data.synergyAnalysis || ''}\n\n## 关键区别特征\n${data.keyDistinguishingFeatures || ''}`
+          setProjectData(prev => ({
+            ...prev,
+            featureComparison: tableContent,
+            synergyAnalysis: data.synergyAnalysis || '',
+          }))
+        } else if (currentStep === 2 && data.conclusion) {
+          const analysisContent = `## 对比文件1分析\n${data.comparisonFile1Analysis || ''}\n\n## 本申请分析\n${data.applicationAnalysis || ''}\n\n## 技术问题差异\n${data.technicalProblemDiff || ''}\n\n## 结论：${data.conclusion}\n${data.reasoning || ''}`
+          setProjectData(prev => ({
+            ...prev,
+            closestPriorArtAnalysis: analysisContent,
+            technicalProblemDiff: data.technicalProblemDiff || '',
+          }))
+        } else if (currentStep === 3 && data.factChecking) {
+          const content = `## 审查员认定的区别特征\n${data.examinerDistinguishingFeatures || ''}\n\n## 事实认定核对\n${JSON.stringify(data.factChecking, null, 2)}\n\n## 对比文件2/3分析\n${data.secondaryReferenceAnalysis || ''}\n\n## 结论：${data.conclusion || ''}`
+          setProjectData(prev => ({
+            ...prev,
+            distinguishingFeatures: content,
+            secondaryReferenceAnalysis: data.secondaryReferenceAnalysis || '',
+          }))
+        } else if (currentStep === 4 && data.commonKnowledgeInstances) {
+          const content = `## 公知常识表述汇总\n${JSON.stringify(data.commonKnowledgeInstances, null, 2)}\n\n## 证据支持分析\n${data.evidenceAnalysis || ''}\n\n## 滥用问题分析\n${data.abuseAnalysis || ''}\n\n## 评述策略\n${data.responseStrategy || ''}`
+          setProjectData(prev => ({
+            ...prev,
+            commonKnowledgePoints: content,
+            routineMeansAnalysis: data.responseStrategy || '',
+          }))
+        } else if (currentStep === 5 && data.hindsightDetection) {
+          const content = `## 审查员推理过程\n${data.examinerReasoning || ''}\n\n## 事后诸葛亮识别\n${JSON.stringify(data.hindsightDetection, null, 2)}\n\n## 正向研发过程\n${data.forwardDevelopmentProcess || ''}\n\n## 违背三步法分析\n${data.violationAnalysis || ''}`
+          setProjectData(prev => ({
+            ...prev,
+            hindsightAnalysis: content,
+            gapAnalysis: data.responseContent || '',
+          }))
+        } else if (currentStep === 6 && data.socialValue) {
+          const content = `## 社会价值分析\n${data.socialValue || ''}\n\n## 经济价值分析\n${data.economicValue || ''}\n\n## 技术突破分析\n${data.techBreakthrough || ''}\n\n## 战略价值评估\n${data.strategicValue || ''}`
+          setProjectData(prev => ({
+            ...prev,
+            socialValue: content,
+            economicValue: data.economicValue || '',
+          }))
+        } else if (currentStep === 7 && data.responseDocument) {
+          setProjectData(prev => ({
+            ...prev,
+            responseContent: data.responseDocument || '',
+            amendedClaims: data.amendedClaims || '',
+          }))
+        } else {
+          const fieldMap: Record<string, keyof OfficeActionData> = {
+            import: 'officeActionContent',
+            featureCompare: 'featureComparison',
+            closestPriorArt: 'closestPriorArtAnalysis',
+            distinguishingFeatures: 'distinguishingFeatures',
+            commonKnowledge: 'commonKnowledgePoints',
+            hindsight: 'hindsightAnalysis',
+            valueAnalysis: 'socialValue',
+            writeResponse: 'responseContent',
+          }
+          const field = fieldMap[STEPS[currentStep].id]
+          if (field) {
+            setProjectData(prev => ({
+              ...prev,
+              [field]: result.rawContent || JSON.stringify(data, null, 2),
+            }))
+          }
+        }
+      } else {
+        console.error('AI analysis failed:', result.error)
+      }
+    } catch (error) {
+      console.error('AI analysis error:', error)
+    } finally {
+      setIsSubmitting(false)
     }
-    
-    setIsSubmitting(false)
   }
 
   const handleSubmit = () => {
     alert('审查意见答复文件已生成！')
+  }
+
+  const renderUploadArea = (type: string, title: string, description: string, icon: any, ref: React.RefObject<HTMLInputElement>) => {
+    const hasFile = Object.keys(uploadedFiles).some(key => key.startsWith(type) && uploadedFiles[key].status === 'success')
+    const uploading = Object.keys(uploadedFiles).some(key => key.startsWith(type) && uploadedFiles[key].status === 'uploading')
+
+    return (
+      <div 
+        className={`border-2 rounded-lg p-4 text-center transition-colors cursor-pointer relative ${
+          hasFile 
+            ? 'border-[var(--success)] bg-[var(--success)]/10' 
+            : uploading 
+              ? 'border-[var(--gold-400)] bg-[var(--gold-400)]/10'
+              : 'border-dashed border-[var(--navy-700)] hover:border-[var(--gold-400)]'
+        }`}
+        onClick={() => ref.current?.click()}
+      >
+        <input
+          ref={ref}
+          type="file"
+          accept={type === 'claims' ? '.pdf,.doc,.docx' : '.pdf'}
+          multiple={type === 'comparisonFiles' || type === 'otherFiles'}
+          onChange={(e) => handleFileUpload(type, e.target.files)}
+          className="hidden"
+        />
+        {uploading ? (
+          <Loader2 size={24} className="mx-auto mb-2 text-[var(--gold-400)] animate-spin" />
+        ) : hasFile ? (
+          <CheckCircle2 size={24} className="mx-auto mb-2 text-[var(--success)]" />
+        ) : (
+          React.createElement(icon, { size: 24, className: 'mx-auto mb-2 text-[var(--text-muted)]' })
+        )}
+        <p className={`text-xs ${hasFile ? 'text-[var(--success)]' : 'text-[var(--text-secondary)]'}`}>
+          {hasFile ? '✓ 文件已上传并解析' : title}
+        </p>
+        <p className="text-xs text-[var(--text-muted)] mt-1">{description}</p>
+        {hasFile && (
+          <div className="mt-2 text-left max-h-24 overflow-y-auto">
+            {Object.entries(uploadedFiles)
+              .filter(([key]) => key.startsWith(type) && uploadedFiles[key].status === 'success')
+              .map(([key, file]) => (
+                <div key={key} className="flex items-center gap-2 text-xs text-[var(--text-secondary)] bg-[rgba(15,23,42,0.5)] p-1 rounded">
+                  <File size={12} />
+                  {file.name}
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -767,7 +962,7 @@ export default function OfficeActionWizard() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleAiAction}
-                disabled={isSubmitting}
+                disabled={isSubmitting || uploadingFiles}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 style={{ background: 'var(--gold-400)', color: 'var(--navy-900)' }}
               >
@@ -873,21 +1068,10 @@ export default function OfficeActionWizard() {
                   <div className="rounded-xl border border-[var(--navy-700)] p-4" style={{ background: 'rgba(15,23,42,0.6)' }}>
                     <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">文件上传</h3>
                     <div className="space-y-3">
-                      <div className="border-2 border-dashed border-[var(--navy-700)] rounded-lg p-4 text-center hover:border-[var(--gold-400)] transition-colors">
-                        <Upload size={24} className="mx-auto mb-2 text-[var(--text-muted)]" />
-                        <p className="text-xs text-[var(--text-secondary)]">上传审查意见通知书</p>
-                        <p className="text-xs text-[var(--text-muted)] mt-1">支持PDF格式</p>
-                      </div>
-                      <div className="border-2 border-dashed border-[var(--navy-700)] rounded-lg p-4 text-center hover:border-[var(--gold-400)] transition-colors">
-                        <FileText size={24} className="mx-auto mb-2 text-[var(--text-muted)]" />
-                        <p className="text-xs text-[var(--text-secondary)]">上传当前权利要求书</p>
-                        <p className="text-xs text-[var(--text-muted)] mt-1">支持DOC/DOCX/PDF格式</p>
-                      </div>
-                      <div className="border-2 border-dashed border-[var(--navy-700)] rounded-lg p-4 text-center hover:border-[var(--gold-400)] transition-colors">
-                        <FileSearch size={24} className="mx-auto mb-2 text-[var(--text-muted)]" />
-                        <p className="text-xs text-[var(--text-secondary)]">上传对比文件（可选）</p>
-                        <p className="text-xs text-[var(--text-muted)] mt-1">支持PDF格式，可多个</p>
-                      </div>
+                      {renderUploadArea('officeAction', '上传审查意见通知书', '支持PDF格式', FileText, officeActionRef)}
+                      {renderUploadArea('claims', '上传当前权利要求书', '支持DOC/DOCX/PDF格式', File, claimsRef)}
+                      {renderUploadArea('comparisonFiles', '上传对比文件（可选）', '支持PDF格式，可多个', FileSearch, comparisonFilesRef)}
+                      {renderUploadArea('otherFiles', '上传其他相关文件（可选）', '支持PDF格式，可多个', Paperclip, otherFilesRef)}
                     </div>
                   </div>
                 </div>
@@ -910,14 +1094,18 @@ export default function OfficeActionWizard() {
                   <div className="rounded-xl border border-[var(--navy-700)]" style={{ background: 'rgba(15,23,42,0.6)' }}>
                     <div className="p-4 border-b border-[var(--navy-700)] flex items-center justify-between">
                       <h3 className="text-sm font-semibold text-[var(--text-primary)]">分析内容</h3>
-                      <button className="text-xs text-[var(--gold-400)] hover:underline">
-                        使用AI生成
+                      <button 
+                        onClick={handleAiAction}
+                        disabled={isSubmitting}
+                        className="text-xs text-[var(--gold-400)] hover:underline flex items-center gap-1"
+                      >
+                        <Sparkles size={12} /> 使用AI生成
                       </button>
                     </div>
                     <textarea
                       value={projectData[STEPS[currentStep].id as keyof OfficeActionData] as string}
                       onChange={(e) => handleFieldChange(STEPS[currentStep].id as keyof OfficeActionData, e.target.value)}
-                      className="w-full h-80 p-4 text-sm text-[var(--text-primary)] bg-transparent outline-none resize-none"
+                      className="w-full h-80 p-4 text-sm text-[var(--text-primary)] bg-transparent outline-none resize-none font-mono"
                       placeholder={`请在此输入${currentStepData.title}的分析内容...`}
                     />
                   </div>
