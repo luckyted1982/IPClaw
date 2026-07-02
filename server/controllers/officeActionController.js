@@ -24,9 +24,20 @@ export async function uploadOfficeActionFiles(req, res) {
     const extractedData = {};
 
     const extractTextFromPDF = async (file) => {
-      const pdfParse = (await import('pdf-parse')).default;
-      const data = await pdfParse(file.data);
-      return data.text;
+      const { PDFParse } = await import('pdf-parse');
+      let fileData = file.data;
+      
+      if (!fileData || fileData.length === 0) {
+        if (file.tempFilePath) {
+          fileData = await fs.promises.readFile(file.tempFilePath);
+        } else {
+          throw new Error('无法读取文件数据');
+        }
+      }
+      
+      const pdfParse = new PDFParse({ data: fileData });
+      const textResult = await pdfParse.getText();
+      return textResult.text;
     };
 
     if (files.officeAction) {
